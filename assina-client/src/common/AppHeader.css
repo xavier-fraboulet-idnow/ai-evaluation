@@ -1,0 +1,64 @@
+/*
+ Copyright 2024 European Commission
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+.app-header {
+    height: 56px;
+    position: relative;
+    z-index: 10;
+}
+
+/*
+.app-title {
+    line-height: 60px;
+    vertical-align: middle;
+    font-size: 1.35em;
+    color: white;
+}
+
+.app-branding {
+    float: left;
+}
+
+.app-options {
+    float: right;
+}
+
+.app-nav ul {
+    list-style-position: none;
+    margin: 0;
+    padding: 0;
+}
+
+.app-nav ul li {
+    list-style-type: none;
+    display: inline-block;
+}
+
+.app-nav ul li a {
+    display: inline-block;
+    line-height: 60px;
+    vertical-align: middle;
+    padding-left: 15px;
+    padding-right: 15px;
+    color: white;
+}
+
+.app-nav ul li a:hover {
+    color: #0f96f6;
+}
+
+.app-nav ul li a.active {
+    color: white;
+}*/

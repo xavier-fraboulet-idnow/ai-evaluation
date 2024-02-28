@@ -1,0 +1,95 @@
+:root{
+    --sw-toolbar-btn-background-color: #18191a;
+    --sw-anchor-active-primary-color: #18191a;
+    --sw-anchor-active-secondary-color: #ffffff;
+    --sw-anchor-done-primary-color: #595d61;
+    --sw-progress-color: #18191a;
+    --sw-progress-background-color: #f8f9fa;
+    --sw-loader-color: #18191a;
+}
+main{
+  padding:0em;
+}
+
+nav ul li .nav-link{
+  color: white !important;
+  font-weight: 200;
+}
+
+nav ul li .nav-link.active{
+  font-weight: 500 !important;
+}
+
+body{
+    background-color: whitesmoke !important;
+    padding-top:5em;
+}
+
+a{
+    text-decoration: none;
+}
+
+a:hover{
+    text-decoration: underline;
+}
+
+.certificateContainer{
+    padding:1em 2em;
+    max-height: 500px;
+    overflow: auto;
+    text-align: center;
+}
+
+.certificateContainer1{
+  padding:1em 2em;
+  max-height: 500px;
+  overflow: auto;
+  text-align: left;
+}
+
+footer {
+    background-color: #767676;
+    color: #fff;
+    padding: 20px 0;
+    margin-top: 2em;
+  }
+  
+  .footer-column {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+  }
+  
+
+  .footer-column a {
+    color: #fff;
+    text-decoration: none;
+    margin: 5px;
+  }
+
+  .footer-column a:hover {
+    text-decoration: underline;
+  }
+
+  .footer-column img {
+    max-width: 100%;
+    height: auto;
+    margin: 5px;
+  }
+
+  .footer-image{
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #createCert{
+    margin-bottom: 0em;
+  }
+
+  @media (max-width: 767.98px) {
+    #createCert{
+      margin-bottom: 1em;
+    }
+  }
