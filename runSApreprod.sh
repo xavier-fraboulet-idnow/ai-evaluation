@@ -1,1 +1,0 @@
-cd assina-server; export ASSINA_SA_BASE_URL=https://trustprovider.signer.eudiw.dev; nohup java -jar assina-sa/target/assina-sa-0.0.1-SNAPSHOT.jar &
