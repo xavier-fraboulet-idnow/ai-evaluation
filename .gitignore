@@ -1,15 +1,14 @@
 # Local
 # Project exclude paths
-/assina-server/assina-app/target/
-/assina-server/assina-crypto/target/
-/assina-client/node-modules
-/assina-client-server/node_modules
-/assina-client-server/public
+/server/app/target/
+/server/sa/target/
+/server/logs/
+/client/node-modules
+/client/package-lock.json
 /**/*.log
 /**/*.pid
 .idea
 .vscode
-/assina-server/ejbca.conf
 node_modules/jquery
 
 # Created by https://www.toptal.com/developers/gitignore/api/java,node
@@ -43,7 +42,6 @@ replay_pid*
 
 ### Node ###
 # Logs
-logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
