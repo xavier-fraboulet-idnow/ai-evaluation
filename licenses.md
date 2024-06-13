@@ -323,7 +323,7 @@ _2024-06-12 14:27:20 CET_
 
 ### Base Project
 
-**58** **Group:** `com.eidtrust` **Name:** `signer` **Version:** `^4.0.3`
+**58** **Group:** `com.eidtrust` **Name:** `signer` **Version:** `0.1.0`
 
 > -   **POM Project URL**: [https://github.com/devisefutures/com.eidtrust.signer](https://github.com/devisefutures/com.eidtrust.signer)
 > -   **POM License**: Unlicense License - [https://github.com/devisefutures/com.eidtrust.signer/blob/main/LICENSE](https://github.com/devisefutures/com.eidtrust.signer/blob/main/LICENSE)
