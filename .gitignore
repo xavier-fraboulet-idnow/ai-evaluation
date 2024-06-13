@@ -3,6 +3,7 @@
 /server/app/target/
 /server/sa/target/
 /server/logs/
+/files/*
 /client/node-modules
 /client/package-lock.json
 /**/*.log
