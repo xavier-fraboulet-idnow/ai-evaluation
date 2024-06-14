@@ -116,7 +116,7 @@ _2024-06-12 14:27:20 CET_
 > -   **POM Project URL**: [https://github.com/FasterXML/jackson-dataformat-xml](https://github.com/FasterXML/jackson-dataformat-xml)
 > -   **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**23** **Group:** `javax.validation` **Name:** `validation-api` **Version:** ``
+**23** **Group:** `javax.validation` **Name:** `validation-api` **Version:** `2.0.1.Final`
 
 > -   **POM Project URL**: [http://beanvalidation.org](http://beanvalidation.org)
 > -   **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
@@ -156,45 +156,43 @@ _2024-06-12 14:27:20 CET_
 > -   **POM Project URL**: [https://tika.apache.org/](https://tika.apache.org/)
 > -   **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
+**31** **Group:** `id.walt` **Name:** `waltid-mdoc-jvm` **Version:** `1.2312081100.0`
+
+> -   **POM Project URL**: [https://walt.id/](https://walt.id/)
+> -   **POM License**: Apache License, Version 2.0 - [https://github.com/walt-id/waltid-mdoc/blob/main/LICENSE] (https://github.com/walt-id/waltid-mdoc/blob/main/LICENSE)
+
 ## BSD3
 
-**31** **Group:** `com.augustcellars.cose` **Name:** `cose-java` **Version:** `1.1.0`
+**32** **Group:** `com.augustcellars.cose` **Name:** `cose-java` **Version:** `1.1.0`
 
 > -   **POM Project URL**: [https://github.com/cose-wg/cose-java](https://github.com/cose-wg/cose-java)
 > -   **POM License**: BSD3 - [https://github.com/jimsch/COSE-JAVA/blob/master/LICENSE](https://github.com/jimsch/COSE-JAVA/blob/master/LICENSE)
 
 ## Bouncy Castle Licence
 
-**32** **Group:** `org.bouncycastle` **Name:** `bcprov-jdk15on` **Version:** `1.70`
+**33** **Group:** `org.bouncycastle` **Name:** `bcprov-jdk15on` **Version:** `1.70`
 
 > -   **POM Project URL**: [https://www.bouncycastle.org/java.html](https://www.bouncycastle.org/java.html)
 > -   **POM License**: Bouncy Castle Licence - [https://www.bouncycastle.org/licence.html](https://www.bouncycastle.org/licence.html)
 
-**33** **Group:** `org.bouncycastle` **Name:** `bcpkix-jdk15on` **Version:** `1.70`
+**34** **Group:** `org.bouncycastle` **Name:** `bcpkix-jdk15on` **Version:** `1.70`
 
 > -   **POM Project URL**: [https://www.bouncycastle.org/java.html](https://www.bouncycastle.org/java.html)
 > -   **POM License**: Bouncy Castle Licence - [https://www.bouncycastle.org/licence.html](https://www.bouncycastle.org/licence.html)
 
 ## Creative Commons Legal Code
 
-**34** **Group:** `com.upokecenter` **Name:** `cbor` **Version:** `5.0.0-alpha1`
+**35** **Group:** `com.upokecenter` **Name:** `cbor` **Version:** `5.0.0-alpha1`
 
 > -   **POM Project URL**: [https://github.com/peteroupc/CBOR-Java](https://github.com/peteroupc/CBOR-Java)
 > -   **POM License**: Creative Commons Legal Code - [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
 
 ## MySQL Connector License
 
-**35** **Group:** `mysql` **Name:** `mysql-connector-java` **Version:** `8.0.33`
+**36** **Group:** `mysql` **Name:** `mysql-connector-java` **Version:** `8.0.33`
 
 > -   **POM Project URL**: [https://dev.mysql.com/](https://dev.mysql.com/)
 > -   **POM License**: [https://github.com/mysql/mysql-connector-j/blob/release/8.x/LICENSE](https://github.com/mysql/mysql-connector-j/blob/release/8.x/LICENSE)
-
-## Walt ID License
-
-**36** **Group:** `id.walt` **Name:** `waltid-mdoc-jvm` **Version:** ``
-
-> -   **POM Project URL**: [https://walt.id/](https://walt.id/)
-> -   **POM License**: [https://github.com/walt-id/waltid-mdoc/blob/main/LICENSE] (https://github.com/walt-id/waltid-mdoc/blob/main/LICENSE)
 
 ## MIT License
 
@@ -256,74 +254,74 @@ _2024-06-12 14:27:20 CET_
 > -   **POM Project URL**: [https://github.com/dcodeIO/bcrypt.js](https://github.com/dcodeIO/bcrypt.js)
 > -   **POM License**: [https://github.com/dcodeIO/bcrypt.js/blob/master/LICENSE](https://github.com/dcodeIO/bcrypt.js/blob/master/LICENSE)
 
-**46** **Group:** ` ` **Name:** `bootstrap` **Version:** `^5.3.3`
+**47** **Group:** ` ` **Name:** `bootstrap` **Version:** `^5.3.3`
 
 > -   **POM Project URL**: [https://getbootstrap.com/](https://getbootstrap.com/)
 > -   **POM License**: MIT License - [https://github.com/twbs/bootstrap/blob/main/LICENSE](https://github.com/twbs/bootstrap/blob/main/LICENSE)
 
-**46** **Group:** ` ` **Name:** `jquery` **Version:** `^3.7.1`
+**48** **Group:** ` ` **Name:** `jquery` **Version:** `^3.7.1`
 
 > -   **POM Project URL**: [https://jquery.com/](https://jquery.com/)
 > -   **POM License**: MIT License - [https://github.com/jquery/jquery/blob/main/LICENSE.txt](https://github.com/jquery/jquery/blob/main/LICENSE.txt)
 
-**47** **Group:** ` ` **Name:** `react` **Version:** `^18.2.0`
+**49** **Group:** ` ` **Name:** `react` **Version:** `^18.2.0`
 
 > -   **POM Project URL**: [https://react.dev/](https://react.dev/)
 > -   **POM License**: MIT License - [https://github.com/facebook/react/blob/main/LICENSE](https://github.com/facebook/react/blob/main/LICENSE)
 
-**48** **Group:** ` ` **Name:** `react-dom` **Version:** `^18.2.0`
+**50** **Group:** ` ` **Name:** `react-dom` **Version:** `^18.2.0`
 
 > -   **POM Project URL**: [https://react.dev/](https://react.dev/)
 > -   **POM License**: MIT License - [https://github.com/facebook/react/blob/main/LICENSE](https://github.com/facebook/react/blob/main/LICENSE)
 
-**49** **Group:** ` ` **Name:** `react-dropdown-select` **Version:** `^4.11.2`
+**51** **Group:** ` ` **Name:** `react-dropdown-select` **Version:** `^4.11.2`
 
 > -   **POM Project URL**: [https://github.com/sanusart/react-dropdown-select](https://github.com/sanusart/react-dropdown-select)
 > -   **POM License**: MIT License - [https://github.com/sanusart/react-dropdown-select/blob/master/LICENSE](https://github.com/sanusart/react-dropdown-select/blob/master/LICENSE)
 
-**50** **Group:** ` ` **Name:** `react-qrcode-logo` **Version:** `^2.10.0`
+**52** **Group:** ` ` **Name:** `react-qrcode-logo` **Version:** `^2.10.0`
 
 > -   **POM Project URL**: [https://github.com/gcoro/react-qrcode-logo](https://github.com/gcoro/react-qrcode-logo)
 > -   **POM License**: MIT License - [https://github.com/gcoro/react-qrcode-logo/blob/master/LICENSE](https://github.com/gcoro/react-qrcode-logo/blob/master/LICENSE)
 
-**51** **Group:** ` ` **Name:** `react-responsive` **Version:** `^9.0.2`
+**53** **Group:** ` ` **Name:** `react-responsive` **Version:** `^9.0.2`
 
 > -   **POM Project URL**: [contra.io/react-responsive](contra.io/react-responsive)
 > -   **POM License**: MIT License - [https://github.com/yocontra/react-responsive/blob/master/LICENSE](https://github.com/yocontra/react-responsive/blob/master/LICENSE)
 
-**52** **Group:** ` ` **Name:** `react-router-dom` **Version:** `^6.22.3`
+**54** **Group:** ` ` **Name:** `react-router-dom` **Version:** `^6.22.3`
 
 > -   **POM Project URL**: [reactrouter.com](reactrouter.com)
 > -   **POM License**: MIT License - [https://github.com/remix-run/react-router/blob/main/LICENSE.md](https://github.com/remix-run/react-router/blob/main/LICENSE.md)
 
-**53** **Group:** ` ` **Name:** `react-scripts` **Version:** `^5.0.1`
+**55** **Group:** ` ` **Name:** `react-scripts` **Version:** `^5.0.1`
 
 > -   **POM Project URL**: [create-react-app.dev](create-react-app.dev)
 > -   **POM License**: MIT License - [https://github.com/facebook/create-react-app/blob/main/LICENSE](https://github.com/facebook/create-react-app/blob/main/LICENSE)
 
-**54** **Group:** ` ` **Name:** `react-toastify` **Version:** `^10.0.4`
+**56** **Group:** ` ` **Name:** `react-toastify` **Version:** `^10.0.4`
 
 > -   **POM Project URL**: [fkhadra.github.io/react-toastify/introduction](fkhadra.github.io/react-toastify/introduction)
 > -   **POM License**: MIT License - [https://github.com/fkhadra/react-toastify/blob/main/LICENSE](https://github.com/fkhadra/react-toastify/blob/main/LICENSE)
 
-**55** **Group:** ` ` **Name:** `serve` **Version:** `^14.2.2`
+**57** **Group:** ` ` **Name:** `serve` **Version:** `^14.2.2`
 
 > -   **POM Project URL**: [https://github.com/vercel/serve](https://github.com/vercel/serve)
 > -   **POM License**: MIT License - [https://github.com/vercel/serve/blob/main/license.md](https://github.com/vercel/serve/blob/main/license.md)
 
-**56** **Group:** ` ` **Name:** `smartwizard` **Version:** `^6.0.6`
+**58** **Group:** ` ` **Name:** `smartwizard` **Version:** `^6.0.6`
 
 > -   **POM Project URL**: [https://techlaboratory.net/jquery-smartwizard](https://techlaboratory.net/jquery-smartwizard)
 > -   **POM License**: MIT License - [https://github.com/techlab/jquery-smartwizard/blob/master/LICENSE](https://github.com/techlab/jquery-smartwizard/blob/master/LICENSE)
 
-**57** **Group:** ` ` **Name:** `warning` **Version:** `^4.0.3`
+**59** **Group:** ` ` **Name:** `warning` **Version:** `^4.0.3`
 
 > -   **POM Project URL**: [https://github.com/BerkeleyTrue/warning](https://github.com/BerkeleyTrue/warning)
 > -   **POM License**: MIT License - [https://github.com/BerkeleyTrue/warning/blob/master/LICENSE.md](https://github.com/BerkeleyTrue/warning/blob/master/LICENSE.md)
 
 ### Base Project
 
-**58** **Group:** `com.eidtrust` **Name:** `signer` **Version:** `0.1.0`
+**60** **Group:** `com.eidtrust` **Name:** `signer` **Version:** `0.1.0`
 
 > -   **POM Project URL**: [https://github.com/devisefutures/com.eidtrust.signer](https://github.com/devisefutures/com.eidtrust.signer)
 > -   **POM License**: Unlicense License - [https://github.com/devisefutures/com.eidtrust.signer/blob/main/LICENSE](https://github.com/devisefutures/com.eidtrust.signer/blob/main/LICENSE)
