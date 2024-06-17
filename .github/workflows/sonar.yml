@@ -2,7 +2,11 @@ name: SAST - SonarCloud (BT) - Custom Monorepo
 on:
   workflow_dispatch:
   push:
+      branches-ignore:
+      - 'dependabot/*'
   pull_request_target:
+      branches-ignore:
+      - 'dependabot/*'
 
         
 jobs:
@@ -128,7 +132,7 @@ jobs:
                             -F "file=@sonarreport_server.html" \
                             -F "scan_date=$SCAN_DATE" \
                             -F "auto_create_context=True" \
-                            -F "product_name=${{ github.repository }}-${{ github.ref_name }}_server" \
+                            -F "product_name=${{ github.repository }}-${{ github.ref_name }}" \
                             -F "engagement_name=Static Application Security Testing - ${{ github.repository }}-${{ github.ref_name }}_server"
 
           curl -X POST "$DOJO_URL/api/v2/reimport-scan/" \
@@ -141,7 +145,7 @@ jobs:
                             -F "file=@sonarreport_client.html" \
                             -F "scan_date=$SCAN_DATE" \
                             -F "auto_create_context=True" \
-                            -F "product_name=${{ github.repository }}-${{ github.ref_name }}_client" \
+                            -F "product_name=${{ github.repository }}-${{ github.ref_name }}" \
                             -F "engagement_name=Static Application Security Testing - ${{ github.repository }}-${{ github.ref_name }}_client"
 
         env:
