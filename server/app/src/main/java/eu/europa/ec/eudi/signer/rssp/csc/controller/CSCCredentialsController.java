@@ -28,6 +28,7 @@ import eu.europa.ec.eudi.signer.common.FailedConnectionVerifier;
 import eu.europa.ec.eudi.signer.common.TimeoutException;
 import eu.europa.ec.eudi.signer.csc.payload.*;
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.common.error.VPTokenInvalid;
@@ -48,10 +49,12 @@ public class CSCCredentialsController {
 	private static final Logger log = LoggerFactory.getLogger(CSCCredentialsController.class);
 
 	private final CSCCredentialsService credentialsService;
+	private final AuthProperties authProperties;
 
 	@Autowired
-	public CSCCredentialsController(CSCCredentialsService credentialsService) {
+	public CSCCredentialsController(CSCCredentialsService credentialsService, AuthProperties authProperties) {
 		this.credentialsService = credentialsService;
+		this.authProperties = authProperties;
 	}
 
 	/*
@@ -118,7 +121,8 @@ public class CSCCredentialsController {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (authorize in CSCCredentialsController.class): " + e.getMessage();
 			log.error(logMessage);
-			LoggerUtil.logs_user(0, userPrincipal.getId(), 6, "");
+			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}
 	}

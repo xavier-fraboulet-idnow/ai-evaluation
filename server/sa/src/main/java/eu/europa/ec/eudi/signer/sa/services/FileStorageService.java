@@ -26,13 +26,13 @@ import java.nio.file.StandardCopyOption;
 
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
+import org.apache.tika.io.FilenameUtils;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import eu.europa.ec.eudi.signer.sa.config.FileStorageConfig;
@@ -57,35 +57,37 @@ public class FileStorageService {
     }
 
     /**
-     * Stores the file in teh local file system and returns an absolute path to it
+     * Stores the file in the local file system and returns an absolute path to it
      *
      * @param file
      * @return
      */
     public String storeFile(MultipartFile file) {
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        String filename1 = FilenameUtils.getName(file.getOriginalFilename());
+        String fileName = FilenameUtils.normalize(filename1);
 
         try {
-            // Check if the file's name contains invalid characters
             if (fileName.contains("..")) {
-                throw new FileStorageException("Sorry! Filename contains invalid path sequence " + fileName);
+                throw new FileStorageException("Invalid file path sequence in file name: " + fileName);
             }
 
+            // validate that the pdf received is a pdf file
             InputStream inputStream = file.getInputStream();
             Detector detector = new DefaultDetector();
-
             Metadata metadata = new Metadata();
-
-            String tipoArquivo = detector.detect(TikaInputStream.get(inputStream), metadata).toString();
-
-            if (!tipoArquivo.equals("application/pdf")) {
+            String archiveType = detector.detect(TikaInputStream.get(inputStream), metadata).toString();
+            if (!archiveType.equals("application/pdf")) {
                 throw new FileStorageException("Sorry! This file is not a PDF -> " + fileName);
             }
 
             // Copy file to the target location (Replacing existing file with the same name)
             Path targetLocation = newFilePath(fileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            return fileName;
+            if (targetLocation.normalize().startsWith(this.fileStorageLocation)) {
+                Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+                return fileName;
+            } else {
+                throw new IOException("Path not valid.");
+            }
         } catch (IOException ex) {
             throw new FileStorageException("Could not store file " + fileName + ". Please try again!", ex);
         }
@@ -109,6 +111,6 @@ public class FileStorageService {
     }
 
     public Path newFilePath(String fileName) {
-        return fileStorageLocation.resolve(fileName).normalize();
+        return fileStorageLocation.resolve(FilenameUtils.getName(fileName)).normalize();
     }
 }

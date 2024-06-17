@@ -2,23 +2,23 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-- [TrustProvider Signer](#trustprovider-signer)
-  - [Overview](#overview)
-    - [Features](#features)
-  - [:heavy\_exclamation\_mark: Disclaimer](#heavy_exclamation_mark-disclaimer)
-  - [Configuration](#configuration)
-    - [Requirements](#requirements)
-    - [Database](#database)
-    - [HTTP Requests to EJBCA](#http-requests-to-ejbca)
-    - [HSM module](#hsm-module)
-    - [Authentication using OpenId4VP](#authentication-using-openid4vp)
-  - [Running the TrustProvider Signer](#running-the-trustprovider-signer)
-  - [Testing](#testing)
-  - [Demo videos](#demo-videos)
-  - [How to contribute](#how-to-contribute)
-  - [License](#license)
-    - [Third-party component licenses](#third-party-component-licenses)
-    - [License details](#license-details)
+-   [TrustProvider Signer](#trustprovider-signer)
+    -   [Overview](#overview)
+        -   [Features](#features)
+    -   [:heavy_exclamation_mark: Disclaimer](#heavy_exclamation_mark-disclaimer)
+    -   [Configuration](#configuration)
+        -   [Requirements](#requirements)
+        -   [Database](#database)
+        -   [HTTP Requests to EJBCA](#http-requests-to-ejbca)
+        -   [HSM module](#hsm-module)
+        -   [Authentication using OpenId4VP](#authentication-using-openid4vp)
+    -   [Running the TrustProvider Signer](#running-the-trustprovider-signer)
+    -   [Testing](#testing)
+    -   [Demo videos](#demo-videos)
+    -   [How to contribute](#how-to-contribute)
+    -   [License](#license)
+        -   [Third-party component licenses](#third-party-component-licenses)
+        -   [License details](#license-details)
 
 :heavy_exclamation_mark: **Important!** Before you proceed, please read
 the [EUDI Wallet Reference Implementation project description](https://github.com/eu-digital-identity-wallet/.github/blob/main/profile/reference-implementation.md)
@@ -31,32 +31,32 @@ TrustProvider Signer is a remote signing service provider and client.
 
 The program implements the following features:
 
-- **Create an Account**: Allows users to create new accounts within the program.
-- **Authentication using OpenId4VP**: Enables authentication through OpenId4VP.
-- **Create Certificates**: Enables authenticated users to create new certificates and their associated key pairs.
-- **Sign Documents**: Allows an authenticated user to digitally sign documents.
+-   **Create an Account**: Allows users to create new accounts within the program.
+-   **Authentication using OpenId4VP**: Enables authentication through OpenId4VP.
+-   **Create Certificates**: Enables authenticated users to create new certificates and their associated key pairs.
+-   **Sign Documents**: Allows an authenticated user to digitally sign documents.
 
 ## :heavy_exclamation_mark: Disclaimer
 
 The released software is a initial development release version:
 
-- The initial development release is an early endeavor reflecting the efforts of a short timeboxed
-  period, and by no means can be considered as the final product.
-- The initial development release may be changed substantially over time, might introduce new
-  features but also may change or remove existing ones, potentially breaking compatibility with your
-  existing code.
-- The initial development release is limited in functional scope.
-- The initial development release may contain errors or design flaws and other problems that could
-  cause system or other failures and data loss.
-- The initial development release has reduced security, privacy, availability, and reliability
-  standards relative to future releases. This could make the software slower, less reliable, or more
-  vulnerable to attacks than mature software.
-- The initial development release is not yet comprehensively documented.
-- Users of the software must perform sufficient engineering and additional testing in order to
-  properly evaluate their application and determine whether any of the open-sourced components is
-  suitable for use in that application.
-- We strongly recommend not putting this version of the software into production use.
-- Only the latest version of the software will be supported
+-   The initial development release is an early endeavor reflecting the efforts of a short timeboxed
+    period, and by no means can be considered as the final product.
+-   The initial development release may be changed substantially over time, might introduce new
+    features but also may change or remove existing ones, potentially breaking compatibility with your
+    existing code.
+-   The initial development release is limited in functional scope.
+-   The initial development release may contain errors or design flaws and other problems that could
+    cause system or other failures and data loss.
+-   The initial development release has reduced security, privacy, availability, and reliability
+    standards relative to future releases. This could make the software slower, less reliable, or more
+    vulnerable to attacks than mature software.
+-   The initial development release is not yet comprehensively documented.
+-   Users of the software must perform sufficient engineering and additional testing in order to
+    properly evaluate their application and determine whether any of the open-sourced components is
+    suitable for use in that application.
+-   We strongly recommend not putting this version of the software into production use.
+-   Only the latest version of the software will be supported
 
 ## Configuration
 
@@ -65,6 +65,20 @@ The released software is a initial development release version:
 -   Node (nodejs & npm)
 -   Java: version 16
 -   Maven
+
+### Application-auth.yml
+
+It is required to define an **application-auth.yml** file in the path "server/app/src/main/resources/". This file should follow the pattern:
+
+```
+auth:
+    datasourceUsername: # the username of a database user, with permissions to update the "assina" database
+    datasourcePassword: # the password for the database user, with permissions to update the "assina" database
+    jwtTokenSecret: # the BASE64-encoded signing key for the JWT token generation: used to digitally sign the JWT
+    sadTokenSecret: # the BASE64-encoded signing key for SAD token generation: used to digitally sign the SAD token
+    dbEncryptionPassphrase: # a password to encrypt/decrypt the secret keys before saving them in the database
+    dbEncryptionSalt: # a BASE64-encoded value corresponding to the "Salt" required to form the key that will encrypt/decrypt the secret keys before saving them in the database
+```
 
 ### Database
 
@@ -77,19 +91,19 @@ sudo apt install mysql-server -y
 sudo systemctl start mysql.service
 ```
 
-After installing MySQL, create a database named **"assina"** and a user named **"assinaadmin"**:
+After installing MySQL, create a database named **"assina"** and a new user:
 
 ```bash
 CREATE DATABASE assina;
-CREATE USER 'assinaadmin'@ip identified by 'assinaadmin';
-GRANT ALL PRIVILEGES ON *.* TO 'assinaadmin'@ip;
+CREATE USER some_username@ip IDENTIFIED BY some_password;
+GRANT ALL PRIVILEGES ON *.* TO some_username@ip;
 ```
 
-Replace 'ip' with the appropriate IP address or hostname of the RSSP component. If the RSSP program and the database run on the same system, use 'localhost' instead of the IP address:
+Replace 'ip' with the appropriate IP address or hostname of the RSSP component, 'some_username' with the username of the user you wish to create, and 'some_password' with the password of the user. If the RSSP program and the database run on the same system, use 'localhost' instead of the IP address:
 
 ```bash
-CREATE USER 'assinaadmin'@'localhost' identified by 'assinaadmin';
-GRANT ALL PRIVILEGES ON *.* TO 'assinaadmin'@'localhost';
+CREATE USER some_username@'localhost' IDENTIFIED BY some_password;
+GRANT ALL PRIVILEGES ON *.* TO some_username@'localhost';
 ```
 
 Additionally, create a table named **'event'** with the following structure:
@@ -118,6 +132,8 @@ VALUES     ('Certificate Issuance'),
 DROP DATABASE assina;
 CREATE DATABASE assina;
 ```
+
+Lastly, don't forget to set the username and the password of the user create in the application-auth.yml.
 
 ### HTTP Requests to EJBCA
 

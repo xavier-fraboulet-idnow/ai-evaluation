@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.api.payload.LogDTO;
 import eu.europa.ec.eudi.signer.rssp.api.services.UserService;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.entities.LogsUser;
 import eu.europa.ec.eudi.signer.rssp.entities.User;
@@ -50,13 +51,16 @@ public class LogsController {
     private final LogsUserRepository repository;
     private final HashMap<Integer, String> events;
     private final SimpleDateFormat formatter;
+    private final AuthProperties authProperties;
 
     public LogsController(@Autowired final LogsUserRepository logsUserRepository,
-            @Autowired UserService userService) {
+            @Autowired UserService userService, @Autowired AuthProperties authProperties) {
         this.userService = userService;
         this.repository = logsUserRepository;
-        this.events = EventRepository.event();
+        this.events = EventRepository.event(authProperties.getDatasourceUsername(),
+                authProperties.getDatasourcePassword());
         this.formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        this.authProperties = authProperties;
     }
 
     /**
@@ -125,7 +129,8 @@ public class LogsController {
             return ResponseEntity.badRequest().body(SignerError.UserNotFound.getFormattedMessage());
         }
 
-        LoggerUtil.logs_user(1, id, 5, "");
+        LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
+                1, id, 5, "");
         return ResponseEntity.ok("ok");
     }
 
@@ -150,7 +155,8 @@ public class LogsController {
             return ResponseEntity.badRequest().body(SignerError.UserNotFound.getFormattedMessage());
         }
 
-        LoggerUtil.logs_user(1, id, 7, "File Name: " + fileName);
+        LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
+                1, id, 7, "File Name: " + fileName);
         return ResponseEntity.ok("ok");
     }
 }

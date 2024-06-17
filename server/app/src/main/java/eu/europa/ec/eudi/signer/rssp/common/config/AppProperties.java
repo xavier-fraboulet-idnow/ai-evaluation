@@ -19,14 +19,30 @@ package eu.europa.ec.eudi.signer.rssp.common.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 
-import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProviderConfig;
-
 @PropertySource("file:application.yml")
 @ConfigurationProperties(prefix = "assina")
 public class AppProperties {
     private final Auth auth = new Auth();
 
-    public static class Auth extends JwtProviderConfig {
+    public static class Auth {
+        private String type;
+        private long lifetimeMinutes;
+
+        public String getType() {
+            return this.type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public long getLifetimeMinutes() {
+            return this.lifetimeMinutes;
+        }
+
+        public void setLifetimeMinutes(long lifetimeMinutes) {
+            this.lifetimeMinutes = lifetimeMinutes;
+        }
     }
 
     public Auth getAuth() {

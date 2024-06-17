@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.api.model.RoleName;
 import eu.europa.ec.eudi.signer.rssp.api.payload.AuthResponse;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.common.error.VPTokenInvalid;
 import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerificationException;
@@ -62,6 +63,9 @@ public class OpenId4VPService {
 
     @Autowired
     private EJBCAService ejbcaService;
+
+    @Autowired
+    private AuthProperties authProperties;
 
     public static class UserOIDTemporaryInfo {
         private final User user;
@@ -212,18 +216,24 @@ public class OpenId4VPService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         if (userInDatabase.isEmpty()) {
             for (Entry<Integer, String> l : logsMap.entrySet())
-                LoggerUtil.logs_user(1, userFromVerifierResponse.getId(), l.getKey(), l.getValue());
+                LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                        this.authProperties.getDatasourcePassword(), 1, userFromVerifierResponse.getId(), l.getKey(),
+                        l.getValue());
 
             LoggerUtil.desc = "PID HASH: " + userFromVerifierResponse.getHash();
-            LoggerUtil.logs_user(1, userFromVerifierResponse.getId(), 4, LoggerUtil.desc);
+            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                    this.authProperties.getDatasourcePassword(), 1, userFromVerifierResponse.getId(), 4,
+                    LoggerUtil.desc);
         } else {
             User u = userInDatabase.get();
 
             for (Entry<Integer, String> l : logsMap.entrySet())
-                LoggerUtil.logs_user(1, u.getId(), l.getKey(), l.getValue());
+                LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                        this.authProperties.getDatasourcePassword(), 1, u.getId(), l.getKey(), l.getValue());
 
             LoggerUtil.desc = "PID HASH: " + u.getHash();
-            LoggerUtil.logs_user(1, u.getId(), 4, LoggerUtil.desc);
+            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                    this.authProperties.getDatasourcePassword(), 1, u.getId(), 4, LoggerUtil.desc);
         }
         return tokenProvider.createToken(authentication);
     }

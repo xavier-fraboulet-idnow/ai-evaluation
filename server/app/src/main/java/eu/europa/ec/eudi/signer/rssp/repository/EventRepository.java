@@ -22,12 +22,10 @@ import java.util.HashMap;
 public class EventRepository {
 
     private static final String URL = "jdbc:mysql://localhost:3306/assina?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false";
-    private static final String USER = "assinaadmin";
-    private static final String PASSWORD = "assinaadmin";
 
-    public static HashMap<Integer, String> event() {
+    public static HashMap<Integer, String> event(String user, String password) {
         HashMap<Integer, String> result = new HashMap<>();
-        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try (Connection connection = DriverManager.getConnection(URL, user, password)) {
             String sql = "SELECT * FROM event";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 try (ResultSet resultSet = statement.executeQuery()) {

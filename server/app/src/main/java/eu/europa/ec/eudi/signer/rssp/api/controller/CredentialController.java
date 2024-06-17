@@ -25,6 +25,7 @@ import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.csc.payload.CredentialInfo;
 import eu.europa.ec.eudi.signer.rssp.api.services.CredentialService;
 import eu.europa.ec.eudi.signer.rssp.api.services.UserService;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.entities.Credential;
@@ -46,11 +47,13 @@ public class CredentialController {
 	private static final Logger logger = LogManager.getLogger(CredentialController.class);
 	private final CredentialService credentialService;
 	private final UserService userService;
+	private final AuthProperties authProperties;
 
 	public CredentialController(@Autowired final CredentialService credentialService,
-			@Autowired final UserService userService) {
+			@Autowired final UserService userService, @Autowired AuthProperties authProperties) {
 		this.credentialService = credentialService;
 		this.userService = userService;
+		this.authProperties = authProperties;
 	}
 
 	/**
@@ -91,7 +94,8 @@ public class CredentialController {
 			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 			X509EncodedKeySpec pKeySpec = new X509EncodedKeySpec(credential.getPublicKeyHSM());
 			RSAPublicKey pk = (RSAPublicKey) keyFactory.generatePublic(pKeySpec);
-			LoggerUtil.logs_user(1, owner, 3,
+			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 1, owner, 3,
 					"Public Key info - Algorithm: " + pk.getAlgorithm() + " " + pk.getModulus().bitLength()
 							+ " bits | Modulus: " + pk.getModulus() + " | Exponent: " + pk.getPublicExponent());
 
@@ -100,7 +104,8 @@ public class CredentialController {
 					+ " | Issuer DN: " + credential.getIssuerDN()
 					+ " | Valid From: " + credential.getValidFrom()
 					+ " | Valid To: " + credential.getValidTo();
-			LoggerUtil.logs_user(1, id, 1, LoggerUtil.desc);
+			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 1, id, 1, LoggerUtil.desc);
 			return new ResponseEntity<>(HttpStatus.CREATED);
 		} catch (ApiException e) {
 			// if the aux functions sent an api exception, the logs were already written
@@ -110,7 +115,8 @@ public class CredentialController {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (createCredential in CredentialController.class) " + e.getMessage();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, id, 1, "");
+			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, id, 1, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}
 	}
@@ -144,7 +150,8 @@ public class CredentialController {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (deleteCredential in CredentialController.class) " + e.getMessage();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, userPrincipal.getId(), 2, "");
+			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 2, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}
 	}

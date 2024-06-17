@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.CryptoConfig;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
@@ -36,15 +37,22 @@ import eu.europa.ec.eudi.signer.rssp.repository.ConfigRepository;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.KeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 @Component
 public class CryptoService {
@@ -57,24 +65,50 @@ public class CryptoService {
     private final PemConverter pemConverter;
     private final HSMService hsmService;
     private final EJBCAService ejbcaService;
+    private final AuthProperties authProperties;
 
     public CryptoService(@Autowired ConfigRepository configRep, @Autowired CSCProperties cscProperties,
-            @Autowired HSMService hsmService, @Autowired EJBCAService ejbcaService) throws Exception {
+            @Autowired HSMService hsmService, @Autowired EJBCAService ejbcaService,
+            @Autowired AuthProperties authProperties) throws Exception {
         this.config = cscProperties.getCrypto();
-        this.cryptoSigner = new CryptoSigner(config);
+        this.cryptoSigner = new CryptoSigner();
         this.generator = new CertificateGenerator(config);
         this.pemConverter = new PemConverter(config);
         this.hsmService = hsmService;
         this.ejbcaService = ejbcaService;
+        this.authProperties = authProperties;
+
+        char[] passphrase = authProperties.getDbEncryptionPassphrase().toCharArray();
+        byte[] salt_bytes = Base64.getDecoder().decode(authProperties.getDbEncryptionSalt());
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(passphrase, salt_bytes, 65536, 256);
+        Key key = (Key) new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
 
         List<SecretKey> secretKeys = configRep.findAll();
         if (secretKeys.isEmpty()) {
+            // generates a secret key to wrap the private keys from the HSM
             byte[] secretKeyBytes = this.hsmService.initSecretKey();
-            SecretKey sk = new SecretKey(secretKeyBytes);
+
+            // encrypts the secret key before saving it in the db
+            Cipher c = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            c.init(Cipher.ENCRYPT_MODE, key);
+            byte[] encryptedSecretKeyBytes = c.doFinal(secretKeyBytes);
+
+            // saves in the db
+            SecretKey sk = new SecretKey(encryptedSecretKeyBytes);
             configRep.save(sk);
         } else {
+            // loads the encrypted key from the database
             SecretKey sk = secretKeys.get(0);
-            this.hsmService.setSecretKey(sk.getSecretKey());
+            byte[] encryptedSecretKeyBytes = sk.getSecretKey();
+
+            // decrypts the secret key
+            Cipher c = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            c.init(Cipher.DECRYPT_MODE, key);
+            byte[] secretKeyBytes = c.doFinal(encryptedSecretKeyBytes);
+
+            // loads the decrypted key to the HSM
+            this.hsmService.setSecretKey(secretKeyBytes);
         }
     }
 
@@ -166,7 +200,8 @@ public class CryptoService {
                     + "(generateKeyPair in CryptoService.class) The algorithm " + this.config.getKeyAlgorithm()
                     + " for key pair creation is not supported by the current implementation.";
             logger.error(logMessage);
-            LoggerUtil.logs_user(0, owner, 3, "");
+            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                    this.authProperties.getDatasourcePassword(), 0, owner, 3, "");
             throw new ApiException(SignerError.AlgorithmNotSupported, "The algorithm " + this.config.getKeyAlgorithm()
                     + " for key pair creation is not supported by the current implementation.");
         }
@@ -179,7 +214,8 @@ public class CryptoService {
                     + "(generateKeyPair in CryptoService.class) "
                     + SignerError.FailedCreatingKeyPair.getDescription() + ": " + e.getMessage();
             logger.error(logMessage);
-            LoggerUtil.logs_user(0, owner, 3, "");
+            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                    this.authProperties.getDatasourcePassword(), 0, owner, 3, "");
             throw new ApiException(SignerError.FailedCreatingKeyPair,
                     SignerError.FailedCreatingKeyPair.getDescription());
         }
@@ -227,7 +263,8 @@ public class CryptoService {
                     + "(generateCertificates in CryptoService.class) "
                     + SignerError.FailedCreatingCertificate.getDescription() + ": " + e.getMessage();
             logger.error(logMessage);
-            LoggerUtil.logs_user(0, owner, 1, "");
+            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                    this.authProperties.getDatasourcePassword(), 0, owner, 1, "");
             throw new ApiException(SignerError.FailedCreatingCertificate,
                     SignerError.FailedCreatingKeyPair.getDescription());
         }
