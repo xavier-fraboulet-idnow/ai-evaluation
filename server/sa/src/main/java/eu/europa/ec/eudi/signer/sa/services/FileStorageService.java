@@ -63,7 +63,16 @@ public class FileStorageService {
      * @return
      */
     public String storeFile(MultipartFile file) {
+        // gets the file name from the original file name (which may contain path info)
         String filename1 = FilenameUtils.getName(file.getOriginalFilename());
+
+        if (filename1 == null || filename1.isEmpty()) {
+            throw new FileStorageException("Could not store file without a name.");
+        }
+
+        // scans the file name for reserved characters on different OSs and file
+        // systems and returns a sanitized version of the name with the reserved chars
+        // replaced by their hexadecimal value.
         String fileName = FilenameUtils.normalize(filename1);
 
         try {
@@ -80,9 +89,13 @@ public class FileStorageService {
                 throw new FileStorageException("Sorry! This file is not a PDF -> " + fileName);
             }
 
-            // Copy file to the target location (Replacing existing file with the same name)
+            // creates a new path for the file, which the directory to use is defined in the
+            // conf file
             Path targetLocation = newFilePath(fileName);
+            // makes sure that the location obtained is in the directory defined in the conf
+            // file
             if (targetLocation.normalize().startsWith(this.fileStorageLocation)) {
+                // copies the received file to the location obtained
                 Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
                 return fileName;
             } else {
