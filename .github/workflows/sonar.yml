@@ -41,8 +41,9 @@ jobs:
           node-version: 18
 
       - name: setup projectkeys
-        run: echo "PROJECTKEY_SERVER=${{ github.repository_owner}}_$(echo ${{ github.repository }}_server | sed 's/.*\///')" >> $GITHUB_ENV
-        run: echo "PROJECTKEY_CLIENT=${{ github.repository_owner}}_$(echo ${{ github.repository }}_client | sed 's/.*\///')" >> $GITHUB_ENV
+        run: |
+          echo "PROJECTKEY_SERVER=${{ github.repository_owner}}_$(echo ${{ github.repository }}_server | sed 's/.*\///')" >> $GITHUB_ENV
+          echo "PROJECTKEY_CLIENT=${{ github.repository_owner}}_$(echo ${{ github.repository }}_client | sed 's/.*\///')" >> $GITHUB_ENV
 
       - name: SonarCloud Scan - Maven - Push or Workflow Dispatch Analysis - Server
         if: (github.event_name == 'push'|| github.event_name == 'workflow_dispatch')
