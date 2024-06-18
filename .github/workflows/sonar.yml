@@ -1,0 +1,154 @@
+name: SAST - SonarCloud (BT) - Custom Monorepo
+on:
+  workflow_dispatch:
+  push:
+      branches-ignore:
+      - 'dependabot/*'
+  pull_request_target:
+      branches-ignore:
+      - 'dependabot/*'
+
+        
+jobs:
+  check_secret:
+    name: Check secret presence
+    runs-on: ubuntu-latest
+    steps:
+    - run: if [[ -z "$SONAR_TOKEN" ]]; then exit 1; else echo "Secret exists. The workflow will be continued"; fi
+    env:
+       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  SAST:
+    name: SAST - SonarCloud Analysis (BT) - Custom Monorepo
+    needs: check_secret
+    runs-on:  ubuntu-latest
+    steps:
+
+      - name: Checkout project sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 #Shallow clones should be disabled for a better relevancy of SonarCloud analysis
+         #ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node 
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: setup projectkeys
+        run: |
+          echo "PROJECTKEY_SERVER=${{ github.repository_owner}}_$(echo ${{ github.repository }}_server | sed 's/.*\///')" >> $GITHUB_ENV
+          echo "PROJECTKEY_CLIENT=${{ github.repository_owner}}_$(echo ${{ github.repository }}_client | sed 's/.*\///')" >> $GITHUB_ENV
+
+      - name: SonarCloud Scan - Maven - Push or Workflow Dispatch Analysis - Server
+        if: (github.event_name == 'push'|| github.event_name == 'workflow_dispatch')
+        working-directory: ./server
+        run: mvn clean verify sonar:sonar -Dsonar.organization=${{ github.repository_owner }} -Dsonar.host.url=${{ secrets.SONAR_HOST }}  -Dsonar.projectKey=${{ env.PROJECTKEY_SERVER }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST: ${{ secrets.SONAR_HOST }}
+
+      - name: SonarCloud Scan - Maven - Pull Request Analysis - Server
+        if: (github.event_name == 'pull_request_target')
+        working-directory: ./server
+        run: mvn clean verify sonar:sonar -Dsonar.organization=${{ github.repository_owner }} -Dsonar.host.url=${{ secrets.SONAR_HOST }}  -Dsonar.projectKey=${{ env.PROJECTKEY_SERVER }} -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }} -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST: ${{ secrets.SONAR_HOST }}
+
+
+      - name: SonarCloud Scan - GH Action - Push or Workflow Dispatch - Client
+        if: (github.event_name == 'push'|| github.event_name == 'workflow_dispatch')
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+            args: >
+                -Dsonar.organization=${{ github.repository_owner }}
+                -Dsonar.projectKey=-Dsonar.projectKey=${{ env.PROJECTKEY_CLIENT }}
+                -Dsonar.inclusions=client/**
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: SonarCloud Scan - GH Action - Pull Request Analysis - Client
+        if: (github.event_name == 'pull_request_target')
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+            args: >
+                -Dsonar.organization=${{ github.repository_owner }}
+                -Dsonar.projectKey=-Dsonar.projectKey=${{ env.PROJECTKEY_CLIENT }}
+                -Dsonar.inclusions=client/**
+                -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+                -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
+                -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Install "sonar-report"  and run it - For "Server" and "Client" components
+        run: |
+          npm cache clean --force
+          npm install -g sonar-report@3.0.10
+          export "PROJECTKEY_SERVER=${{ github.repository_owner}}_$(echo ${{ github.repository }}_server | sed 's/.*\///')"
+          export "PROJECTKEY_CLIENT=${{ github.repository_owner}}_$(echo ${{ github.repository }}_client | sed 's/.*\///')"
+          sonar-report \
+           --sonarurl="${{ secrets.SONAR_HOST }}" \
+           --sonarorganization="${{ github.repository_owner }}" \
+           --branch="${{ github.ref_name }}" \
+           --sonartoken="${{ secrets.SONAR_TOKEN }}" \
+           --output sonarreport_server.html \
+           --application="$PROJECTKEY_SERVER" \
+           --sonarcomponent="$PROJECTKEY_SERVER"
+
+          sonar-report \
+           --sonarurl="${{ secrets.SONAR_HOST }}" \
+           --sonarorganization="${{ github.repository_owner }}" \
+           --branch="${{ github.ref_name }}" \
+           --sonartoken="${{ secrets.SONAR_TOKEN }}" \
+           --output sonarreport_client.html \
+           --application="$PROJECTKEY_CLIENT" \
+           --sonarcomponent="$PROJECTKEY_CLIENT"
+
+        env:
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_HOST: ${{ secrets.SONAR_HOST }}
+
+      - name: Send reports to DefectDojo - For "Server" and "Client" components
+        if: (github.repository_owner == 'eu-digital-identity-wallet' && github.ref_name == 'main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))
+        run: |
+          export "SCAN_DATE=$(TZ='EET' date '+%Y-%m-%d')"
+          curl -X POST "$DOJO_URL/api/v2/reimport-scan/" \
+                            -H "Authorization: Token $DOJO_TOKEN" \
+                            -F "active=true" \
+                            -F "scan_type=SonarQube Scan detailed" \
+                            -F "minimum_severity=Info" \
+                            -F "skip_duplicates=true" \
+                            -F "close_old_findings=true" \
+                            -F "file=@sonarreport_server.html" \
+                            -F "scan_date=$SCAN_DATE" \
+                            -F "auto_create_context=True" \
+                            -F "product_name=${{ github.repository }}-${{ github.ref_name }}" \
+                            -F "engagement_name=Static Application Security Testing - ${{ github.repository }}-${{ github.ref_name }}_server"
+
+          curl -X POST "$DOJO_URL/api/v2/reimport-scan/" \
+                            -H "Authorization: Token $DOJO_TOKEN" \
+                            -F "active=true" \
+                            -F "scan_type=SonarQube Scan detailed" \
+                            -F "minimum_severity=Info" \
+                            -F "skip_duplicates=true" \
+                            -F "close_old_findings=true" \
+                            -F "file=@sonarreport_client.html" \
+                            -F "scan_date=$SCAN_DATE" \
+                            -F "auto_create_context=True" \
+                            -F "product_name=${{ github.repository }}-${{ github.ref_name }}" \
+                            -F "engagement_name=Static Application Security Testing - ${{ github.repository }}-${{ github.ref_name }}_client"
+
+        env:
+         DOJO_TOKEN: ${{ secrets.DOJO_TOKEN }}
+         DOJO_URL: ${{ secrets.DOJO_URL }}
