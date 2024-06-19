@@ -44,11 +44,13 @@ jobs:
         run: |
           echo "PROJECTKEY_SERVER=${{ github.repository_owner}}_$(echo ${{ github.repository }}_server | sed 's/.*\///')" >> $GITHUB_ENV
           echo "PROJECTKEY_CLIENT=${{ github.repository_owner}}_$(echo ${{ github.repository }}_client | sed 's/.*\///')" >> $GITHUB_ENV
+          echo "PROJECT_NAME_SERVER=eudi-srv-web-trustprovider-signer-java_server" >> $GITHUB_ENV
+          echo "PROJECT_NAME_CLIENT=eudi-srv-web-trustprovider-signer-java_client" >> $GITHUB_ENV
 
       - name: SonarCloud Scan - Maven - Push or Workflow Dispatch Analysis - Server
         if: (github.event_name == 'push'|| github.event_name == 'workflow_dispatch')
         working-directory: ./server
-        run: mvn clean verify sonar:sonar -Dsonar.organization=${{ github.repository_owner }} -Dsonar.host.url=${{ secrets.SONAR_HOST }}  -Dsonar.projectKey=${{ env.PROJECTKEY_SERVER }}
+        run: mvn clean verify sonar:sonar -Dsonar.organization=${{ github.repository_owner }} -Dsonar.host.url=${{ secrets.SONAR_HOST }}  -Dsonar.projectKey=${{ env.PROJECTKEY_SERVER }} -Dsonar.projectName=${{ env.PROJECT_NAME_SERVER }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -57,7 +59,7 @@ jobs:
       - name: SonarCloud Scan - Maven - Pull Request Analysis - Server
         if: (github.event_name == 'pull_request_target')
         working-directory: ./server
-        run: mvn clean verify sonar:sonar -Dsonar.organization=${{ github.repository_owner }} -Dsonar.host.url=${{ secrets.SONAR_HOST }}  -Dsonar.projectKey=${{ env.PROJECTKEY_SERVER }} -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }} -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
+        run: mvn clean verify sonar:sonar -Dsonar.organization=${{ github.repository_owner }} -Dsonar.host.url=${{ secrets.SONAR_HOST }}  -Dsonar.projectKey=${{ env.PROJECTKEY_SERVER }} -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }} -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} -Dsonar.projectName=${{ env.PROJECT_NAME_SERVER }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -70,8 +72,9 @@ jobs:
         with:
             args: >
                 -Dsonar.organization=${{ github.repository_owner }}
-                -Dsonar.projectKey=-Dsonar.projectKey=${{ env.PROJECTKEY_CLIENT }}
+                -Dsonar.projectKey=${{env.PROJECTKEY_CLIENT }}
                 -Dsonar.inclusions=client/**
+                -Dsonar.projectName=${{ env.PROJECT_NAME_CLIENT }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -82,8 +85,9 @@ jobs:
         with:
             args: >
                 -Dsonar.organization=${{ github.repository_owner }}
-                -Dsonar.projectKey=-Dsonar.projectKey=${{ env.PROJECTKEY_CLIENT }}
+                -Dsonar.projectKey=${{env.PROJECTKEY_CLIENT }}
                 -Dsonar.inclusions=client/**
+                -Dsonar.projectName=${{ env.PROJECT_NAME_CLIENT }}
                 -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
                 -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
                 -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
@@ -95,16 +99,15 @@ jobs:
         run: |
           npm cache clean --force
           npm install -g sonar-report@3.0.10
-          export "PROJECTKEY_SERVER=${{ github.repository_owner}}_$(echo ${{ github.repository }}_server | sed 's/.*\///')"
-          export "PROJECTKEY_CLIENT=${{ github.repository_owner}}_$(echo ${{ github.repository }}_client | sed 's/.*\///')"
+
           sonar-report \
            --sonarurl="${{ secrets.SONAR_HOST }}" \
            --sonarorganization="${{ github.repository_owner }}" \
            --branch="${{ github.ref_name }}" \
            --sonartoken="${{ secrets.SONAR_TOKEN }}" \
            --output sonarreport_server.html \
-           --application="$PROJECTKEY_SERVER" \
-           --sonarcomponent="$PROJECTKEY_SERVER"
+           --application="$PROJECT_NAME_SERVER" \
+           --sonarcomponent="$PROJECT_NAME_SERVER"
 
           sonar-report \
            --sonarurl="${{ secrets.SONAR_HOST }}" \
@@ -112,8 +115,8 @@ jobs:
            --branch="${{ github.ref_name }}" \
            --sonartoken="${{ secrets.SONAR_TOKEN }}" \
            --output sonarreport_client.html \
-           --application="$PROJECTKEY_CLIENT" \
-           --sonarcomponent="$PROJECTKEY_CLIENT"
+           --application="$PROJECT_NAME_CLIENT" \
+           --sonarcomponent="$PROJECT_NAME_CLIENT"
 
         env:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
