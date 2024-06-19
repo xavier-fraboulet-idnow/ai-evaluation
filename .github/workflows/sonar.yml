@@ -70,7 +70,7 @@ jobs:
         with:
             args: >
                 -Dsonar.organization=${{ github.repository_owner }}
-                -Dsonar.projectKey=-Dsonar.projectKey=${{ env.PROJECTKEY_CLIENT }}
+                -Dsonar.projectKey=${{env.PROJECTKEY_CLIENT }}
                 -Dsonar.inclusions=client/**
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
@@ -82,7 +82,7 @@ jobs:
         with:
             args: >
                 -Dsonar.organization=${{ github.repository_owner }}
-                -Dsonar.projectKey=-Dsonar.projectKey=${{ env.PROJECTKEY_CLIENT }}
+                -Dsonar.projectKey=${{env.PROJECTKEY_CLIENT }}
                 -Dsonar.inclusions=client/**
                 -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
                 -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
