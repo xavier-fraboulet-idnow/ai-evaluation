@@ -69,7 +69,7 @@ public class CryptoService {
     private final HSMService hsmService;
     private final EJBCAService ejbcaService;
     private final AuthProperties authProperties;
-    private final static int iv_length = 12;
+    private static final int ivLength = 12;
 
     public CryptoService(@Autowired ConfigRepository configRep, @Autowired CSCProperties cscProperties,
             @Autowired HSMService hsmService, @Autowired EJBCAService ejbcaService,
@@ -84,7 +84,7 @@ public class CryptoService {
 
         char[] passphrase = authProperties.getDbEncryptionPassphrase().toCharArray();
         byte[] saltBytes = Base64.getDecoder().decode(authProperties.getDbEncryptionSalt());
-        
+
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KeySpec spec = new PBEKeySpec(passphrase, saltBytes, 65536, 256);
         Key key = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
@@ -94,7 +94,7 @@ public class CryptoService {
             // generates a secret key to wrap the private keys from the HSM
             byte[] secretKeyBytes = this.hsmService.initSecretKey();
 
-            byte[] iv = new byte[iv_length];
+            byte[] iv = new byte[ivLength];
             SecureRandom secureRandom = new SecureRandom();
             secureRandom.nextBytes(iv);
 
@@ -117,7 +117,7 @@ public class CryptoService {
             byte[] encryptedSecretKeyBytes = sk.getSecretKey();
 
             ByteBuffer byteBuffer = ByteBuffer.wrap(encryptedSecretKeyBytes);
-            byte[] iv = new byte[iv_length];
+            byte[] iv = new byte[ivLength];
             byteBuffer.get(iv);
             byte[] encryptedSecretKey = new byte[byteBuffer.remaining()];
             byteBuffer.get(encryptedSecretKey);
