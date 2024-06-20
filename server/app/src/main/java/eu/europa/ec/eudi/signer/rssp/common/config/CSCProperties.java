@@ -44,26 +44,7 @@ public class CSCProperties {
     public static class Crypto extends CryptoConfig {
     }
 
-    public static class Sad {
-        private String type;
-        private long lifetimeMinutes;
-
-        public String getType() {
-            return this.type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public long getLifetimeMinutes() {
-            return this.lifetimeMinutes;
-        }
-
-        public void setLifetimeMinutes(long lifetimeMinutes) {
-            this.lifetimeMinutes = lifetimeMinutes;
-        }
-
+    public static class Sad extends TokenCommonConfig {
     }
 
     public static class Api {

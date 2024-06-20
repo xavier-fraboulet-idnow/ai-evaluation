@@ -16,19 +16,23 @@
 
 package eu.europa.ec.eudi.signer.rssp.common.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
+public class TokenCommonConfig {
+    private String type;
+    private long lifetimeMinutes;
 
-@PropertySource("file:application.yml")
-@ConfigurationProperties(prefix = "assina")
-public class AppProperties {
-    private final Auth auth = new Auth();
-
-    public static class Auth extends TokenCommonConfig {
+    public String getType() {
+        return this.type;
     }
 
-    public Auth getAuth() {
-        return auth;
+    public void setType(String type) {
+        this.type = type;
     }
 
+    public long getLifetimeMinutes() {
+        return this.lifetimeMinutes;
+    }
+
+    public void setLifetimeMinutes(long lifetimeMinutes) {
+        this.lifetimeMinutes = lifetimeMinutes;
+    }
 }

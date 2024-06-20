@@ -74,12 +74,11 @@ public class CSCCredentialsService {
 	private VerifierClient verifierClient;
 
 	@Autowired
-	OpenId4VPService userOID4VPService;
+	private OpenId4VPService userOID4VPService;
 
 	@Autowired
 	private EJBCAService ejbcaService;
 
-	@Autowired
 	private AuthProperties authProperties;
 
 	private final CredentialService credentialService;
@@ -90,11 +89,12 @@ public class CSCCredentialsService {
 	private static final Logger logger = LogManager.getLogger(CSCCredentialsService.class);
 
 	public CSCCredentialsService(CredentialService credentialService, UserService userService,
-			CryptoService cryptoService, CSCSADProvider sadProvider) {
+			CryptoService cryptoService, CSCSADProvider sadProvider, @Autowired AuthProperties authProperties) {
 		this.credentialService = credentialService;
 		this.userService = userService;
 		this.cryptoService = cryptoService;
 		this.sadProvider = sadProvider;
+		this.authProperties = authProperties;
 	}
 
 	public CSCCredentialsListResponse listCredentials(CSCCredentialsListRequest listRequest) {

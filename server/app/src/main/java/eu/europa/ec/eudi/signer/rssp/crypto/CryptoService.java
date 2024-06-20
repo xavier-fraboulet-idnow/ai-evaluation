@@ -90,7 +90,7 @@ public class CryptoService {
             byte[] secretKeyBytes = this.hsmService.initSecretKey();
 
             // encrypts the secret key before saving it in the db
-            Cipher c = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
             c.init(Cipher.ENCRYPT_MODE, key);
             byte[] encryptedSecretKeyBytes = c.doFinal(secretKeyBytes);
 
@@ -103,7 +103,7 @@ public class CryptoService {
             byte[] encryptedSecretKeyBytes = sk.getSecretKey();
 
             // decrypts the secret key
-            Cipher c = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
             c.init(Cipher.DECRYPT_MODE, key);
             byte[] secretKeyBytes = c.doFinal(encryptedSecretKeyBytes);
 

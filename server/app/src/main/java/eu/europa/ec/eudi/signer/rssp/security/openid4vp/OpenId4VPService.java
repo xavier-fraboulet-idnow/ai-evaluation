@@ -52,20 +52,21 @@ public class OpenId4VPService {
 
     private static final Logger log = LoggerFactory.getLogger(OpenId4VPService.class);
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
+    private final AuthenticationManager authenticationManager;
+    private final UserAuthenticationTokenProvider tokenProvider;
+    private final EJBCAService ejbcaService;
+    private final AuthProperties authProperties;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UserAuthenticationTokenProvider tokenProvider;
-
-    @Autowired
-    private EJBCAService ejbcaService;
-
-    @Autowired
-    private AuthProperties authProperties;
+    public OpenId4VPService(UserRepository repository, AuthenticationManager authenticationManager,
+            UserAuthenticationTokenProvider tokenProvider, EJBCAService ejbcaService, AuthProperties authProperties) {
+        this.repository = repository;
+        this.authenticationManager = authenticationManager;
+        this.tokenProvider = tokenProvider;
+        this.ejbcaService = ejbcaService;
+        this.authProperties = authProperties;
+    }
 
     public static class UserOIDTemporaryInfo {
         private final User user;
