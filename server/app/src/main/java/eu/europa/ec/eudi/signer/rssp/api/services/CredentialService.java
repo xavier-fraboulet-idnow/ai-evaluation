@@ -74,7 +74,7 @@ public class CredentialService {
 					+ " (createCredential in CredentialService.class) "
 					+ SignerError.CredentialAliasAlreadyExists.getDescription();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, owner, 1,
 					SignerError.CredentialAliasAlreadyExists.getDescription());
 
@@ -105,7 +105,7 @@ public class CredentialService {
 					+ " (deleteCredential in CredentialService.class) "
 					+ SignerError.CredentialNotFound.getDescription();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, ownerId, 2, "");
 			throw new ApiException(SignerError.CredentialNotFound,
 					"Attempted to delete the credential " + credentialAlias + ", that does not exist.");
@@ -116,7 +116,7 @@ public class CredentialService {
 				+ " | Valid From: " + credential.get().getValidFrom()
 				+ " | Valid To: " + credential.get().getValidTo();
 		credentialRepository.deleteByOwnerAndAlias(ownerId, credentialAlias);
-		LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
+		LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
 				1, ownerId, 2, LoggerUtil.desc);
 	}
 

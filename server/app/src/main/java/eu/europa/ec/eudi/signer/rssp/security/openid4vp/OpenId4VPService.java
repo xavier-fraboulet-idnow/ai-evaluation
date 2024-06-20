@@ -217,23 +217,23 @@ public class OpenId4VPService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         if (userInDatabase.isEmpty()) {
             for (Entry<Integer, String> l : logsMap.entrySet())
-                LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
                         this.authProperties.getDatasourcePassword(), 1, userFromVerifierResponse.getId(), l.getKey(),
                         l.getValue());
 
             LoggerUtil.desc = "PID HASH: " + userFromVerifierResponse.getHash();
-            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
                     this.authProperties.getDatasourcePassword(), 1, userFromVerifierResponse.getId(), 4,
                     LoggerUtil.desc);
         } else {
             User u = userInDatabase.get();
 
             for (Entry<Integer, String> l : logsMap.entrySet())
-                LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+                LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
                         this.authProperties.getDatasourcePassword(), 1, u.getId(), l.getKey(), l.getValue());
 
             LoggerUtil.desc = "PID HASH: " + u.getHash();
-            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
                     this.authProperties.getDatasourcePassword(), 1, u.getId(), 4, LoggerUtil.desc);
         }
         return tokenProvider.createToken(authentication);

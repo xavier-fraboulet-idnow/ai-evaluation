@@ -32,8 +32,8 @@ public class LoggerUtil {
 
     private static final Logger logger = LogManager.getLogger(LoggerUtil.class);
 
-    public static void logs_user(String dbUsername, String dbPassword, int success, String usersID, int eventTypeID,
-            String info) {
+    public static void logsUser(String dbUsername, String dbPassword, int success, String usersID, int eventTypeID,
+                                String info) {
 
         try (Connection connection = DriverManager.getConnection(URL, dbUsername, dbPassword)) {
             String sql = "INSERT INTO logs_user (success, usersID, eventTypeID, info) VALUES (?, ?, ?, ?)";

@@ -17,13 +17,7 @@
 package eu.europa.ec.eudi.signer.rssp.api.controller;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,7 +43,7 @@ public class LogsController {
     private static final Logger logger = LogManager.getLogger(LogsController.class);
     private final UserService userService;
     private final LogsUserRepository repository;
-    private final HashMap<Integer, String> events;
+    private final Map<Integer, String> events;
     private final SimpleDateFormat formatter;
     private final AuthProperties authProperties;
 
@@ -129,7 +123,7 @@ public class LogsController {
             return ResponseEntity.badRequest().body(SignerError.UserNotFound.getFormattedMessage());
         }
 
-        LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
+        LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
                 1, id, 5, "");
         return ResponseEntity.ok("ok");
     }
@@ -155,7 +149,7 @@ public class LogsController {
             return ResponseEntity.badRequest().body(SignerError.UserNotFound.getFormattedMessage());
         }
 
-        LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
+        LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
                 1, id, 7, "File Name: " + fileName);
         return ResponseEntity.ok("ok");
     }

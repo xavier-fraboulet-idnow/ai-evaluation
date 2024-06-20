@@ -121,7 +121,7 @@ public class CSCCredentialsController {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (authorize in CSCCredentialsController.class): " + e.getMessage();
 			log.error(logMessage);
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}

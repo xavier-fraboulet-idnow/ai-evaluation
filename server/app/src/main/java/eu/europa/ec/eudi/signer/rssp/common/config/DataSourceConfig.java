@@ -26,10 +26,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 
 @Configuration
-@PropertySources({
-        @PropertySource("classpath:application-auth.yml"),
-        @PropertySource("classpath:application.yml")
-})
+@PropertySource("classpath:application-auth.yml")
+@PropertySource("classpath:application.yml")
 public class DataSourceConfig {
 
     @Value("${auth.datasourceUsername}")

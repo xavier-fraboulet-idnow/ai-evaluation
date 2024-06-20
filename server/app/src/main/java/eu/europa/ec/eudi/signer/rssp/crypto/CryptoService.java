@@ -37,8 +37,10 @@ import eu.europa.ec.eudi.signer.rssp.repository.ConfigRepository;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.security.Key;
 import java.security.KeyFactory;
+import java.security.SecureRandom;
 import java.security.interfaces.RSAPublicKey;
 
 import java.security.cert.CertificateException;
@@ -51,6 +53,7 @@ import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -66,6 +69,7 @@ public class CryptoService {
     private final HSMService hsmService;
     private final EJBCAService ejbcaService;
     private final AuthProperties authProperties;
+    private final static int iv_length = 12;
 
     public CryptoService(@Autowired ConfigRepository configRep, @Autowired CSCProperties cscProperties,
             @Autowired HSMService hsmService, @Autowired EJBCAService ejbcaService,
@@ -79,33 +83,50 @@ public class CryptoService {
         this.authProperties = authProperties;
 
         char[] passphrase = authProperties.getDbEncryptionPassphrase().toCharArray();
-        byte[] salt_bytes = Base64.getDecoder().decode(authProperties.getDbEncryptionSalt());
+        byte[] saltBytes = Base64.getDecoder().decode(authProperties.getDbEncryptionSalt());
+        
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(passphrase, salt_bytes, 65536, 256);
-        Key key = (Key) new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+        KeySpec spec = new PBEKeySpec(passphrase, saltBytes, 65536, 256);
+        Key key = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
 
         List<SecretKey> secretKeys = configRep.findAll();
         if (secretKeys.isEmpty()) {
             // generates a secret key to wrap the private keys from the HSM
             byte[] secretKeyBytes = this.hsmService.initSecretKey();
 
+            byte[] iv = new byte[iv_length];
+            SecureRandom secureRandom = new SecureRandom();
+            secureRandom.nextBytes(iv);
+
             // encrypts the secret key before saving it in the db
             Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-            c.init(Cipher.ENCRYPT_MODE, key);
+            GCMParameterSpec algSpec = new GCMParameterSpec(128, iv);
+            c.init(Cipher.ENCRYPT_MODE, key, algSpec);
             byte[] encryptedSecretKeyBytes = c.doFinal(secretKeyBytes);
 
+            ByteBuffer byteBuffer = ByteBuffer.allocate(iv.length + encryptedSecretKeyBytes.length);
+            byteBuffer.put(iv);
+            byteBuffer.put(encryptedSecretKeyBytes);
+
             // saves in the db
-            SecretKey sk = new SecretKey(encryptedSecretKeyBytes);
+            SecretKey sk = new SecretKey(byteBuffer.array());
             configRep.save(sk);
         } else {
             // loads the encrypted key from the database
             SecretKey sk = secretKeys.get(0);
             byte[] encryptedSecretKeyBytes = sk.getSecretKey();
 
+            ByteBuffer byteBuffer = ByteBuffer.wrap(encryptedSecretKeyBytes);
+            byte[] iv = new byte[iv_length];
+            byteBuffer.get(iv);
+            byte[] encryptedSecretKey = new byte[byteBuffer.remaining()];
+            byteBuffer.get(encryptedSecretKey);
+
             // decrypts the secret key
             Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-            c.init(Cipher.DECRYPT_MODE, key);
-            byte[] secretKeyBytes = c.doFinal(encryptedSecretKeyBytes);
+            GCMParameterSpec algSpec = new GCMParameterSpec(128, iv);
+            c.init(Cipher.DECRYPT_MODE, key, algSpec);
+            byte[] secretKeyBytes = c.doFinal(encryptedSecretKey);
 
             // loads the decrypted key to the HSM
             this.hsmService.setSecretKey(secretKeyBytes);
@@ -200,7 +221,7 @@ public class CryptoService {
                     + "(generateKeyPair in CryptoService.class) The algorithm " + this.config.getKeyAlgorithm()
                     + " for key pair creation is not supported by the current implementation.";
             logger.error(logMessage);
-            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
                     this.authProperties.getDatasourcePassword(), 0, owner, 3, "");
             throw new ApiException(SignerError.AlgorithmNotSupported, "The algorithm " + this.config.getKeyAlgorithm()
                     + " for key pair creation is not supported by the current implementation.");
@@ -214,7 +235,7 @@ public class CryptoService {
                     + "(generateKeyPair in CryptoService.class) "
                     + SignerError.FailedCreatingKeyPair.getDescription() + ": " + e.getMessage();
             logger.error(logMessage);
-            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
                     this.authProperties.getDatasourcePassword(), 0, owner, 3, "");
             throw new ApiException(SignerError.FailedCreatingKeyPair,
                     SignerError.FailedCreatingKeyPair.getDescription());
@@ -263,7 +284,7 @@ public class CryptoService {
                     + "(generateCertificates in CryptoService.class) "
                     + SignerError.FailedCreatingCertificate.getDescription() + ": " + e.getMessage();
             logger.error(logMessage);
-            LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
                     this.authProperties.getDatasourcePassword(), 0, owner, 1, "");
             throw new ApiException(SignerError.FailedCreatingCertificate,
                     SignerError.FailedCreatingKeyPair.getDescription());

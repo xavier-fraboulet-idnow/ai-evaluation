@@ -94,7 +94,7 @@ public class CredentialController {
 			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 			X509EncodedKeySpec pKeySpec = new X509EncodedKeySpec(credential.getPublicKeyHSM());
 			RSAPublicKey pk = (RSAPublicKey) keyFactory.generatePublic(pKeySpec);
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 1, owner, 3,
 					"Public Key info - Algorithm: " + pk.getAlgorithm() + " " + pk.getModulus().bitLength()
 							+ " bits | Modulus: " + pk.getModulus() + " | Exponent: " + pk.getPublicExponent());
@@ -104,7 +104,7 @@ public class CredentialController {
 					+ " | Issuer DN: " + credential.getIssuerDN()
 					+ " | Valid From: " + credential.getValidFrom()
 					+ " | Valid To: " + credential.getValidTo();
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 1, id, 1, LoggerUtil.desc);
 			return new ResponseEntity<>(HttpStatus.CREATED);
 		} catch (ApiException e) {
@@ -115,7 +115,7 @@ public class CredentialController {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (createCredential in CredentialController.class) " + e.getMessage();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, id, 1, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}
@@ -150,7 +150,7 @@ public class CredentialController {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (deleteCredential in CredentialController.class) " + e.getMessage();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 2, "");
 			return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
 		}

@@ -18,12 +18,13 @@ package eu.europa.ec.eudi.signer.rssp.repository;
 
 import java.sql.*;
 import java.util.HashMap;
+import java.util.Map;
 
 public class EventRepository {
 
     private static final String URL = "jdbc:mysql://localhost:3306/assina?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false";
 
-    public static HashMap<Integer, String> event(String user, String password) {
+    public static Map<Integer, String> event(String user, String password) {
         HashMap<Integer, String> result = new HashMap<>();
         try (Connection connection = DriverManager.getConnection(URL, user, password)) {
             String sql = "SELECT * FROM event";

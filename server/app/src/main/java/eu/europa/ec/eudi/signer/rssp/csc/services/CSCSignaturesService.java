@@ -84,7 +84,7 @@ public class CSCSignaturesService {
 		final Credential credential = credentialService
 				.getCredentialWithAlias(userPrincipal.getId(), credentialAlias).orElseThrow(
 						() -> {
-							LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+							LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 									this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
 							LoggerUtil.desc = "";
 							return new ApiException(CSCInvalidRequest.InvalidCredentialId,
@@ -98,7 +98,7 @@ public class CSCSignaturesService {
 		} catch (Exception e) {
 			log.error("{} (signHash in CSCSignaturesService.class.class): SAD not validated.",
 					SignerError.FailedToValidateSAD.getCode());
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
 			LoggerUtil.desc = "";
 			throw new ApiException(SignerError.FailedToValidateSAD);
@@ -119,13 +119,13 @@ public class CSCSignaturesService {
 			response.setSignatures(signedHashes);
 			LoggerUtil.desc = LoggerUtil.desc + " | CMS Signed Data Bytes: " + signedHashes;
 			LoggerUtil.desc = LoggerUtil.desc + " | File Name: " + pdfName;
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 1, userPrincipal.getId(), 6, LoggerUtil.desc);
 			LoggerUtil.desc = "";
 		} catch (Exception e) {
 			log.error("{} (signHash in CSCSignaturesService.class.class): Failed to sign.",
 					SignerError.FailedSigningData.getCode());
-			LoggerUtil.logs_user(this.authProperties.getDatasourceUsername(),
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, userPrincipal.getId(), 6, "");
 			throw e;
 		}
