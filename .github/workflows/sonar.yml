@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
   push:
       branches-ignore:
-      - 'dependabot/*'
+      - 'dependabot/**'
   pull_request_target:
       branches-ignore:
-      - 'dependabot/*'
+      - 'dependabot/**'
 
         
 jobs:
@@ -99,15 +99,17 @@ jobs:
         run: |
           npm cache clean --force
           npm install -g sonar-report@3.0.10
-
+          echo "PROJECTKEY_SERVER=${{ github.repository_owner}}_$(echo ${{ github.repository }}_server | sed 's/.*\///')" >> $GITHUB_ENV
+          echo "PROJECTKEY_CLIENT=${{ github.repository_owner}}_$(echo ${{ github.repository }}_client | sed 's/.*\///')" >> $GITHUB_ENV
+          
           sonar-report \
            --sonarurl="${{ secrets.SONAR_HOST }}" \
            --sonarorganization="${{ github.repository_owner }}" \
            --branch="${{ github.ref_name }}" \
            --sonartoken="${{ secrets.SONAR_TOKEN }}" \
            --output sonarreport_server.html \
-           --application="$PROJECT_NAME_SERVER" \
-           --sonarcomponent="$PROJECT_NAME_SERVER"
+           --application="$PROJECTKEY_SERVER" \
+           --sonarcomponent="$PROJECTKEY_SERVER"
 
           sonar-report \
            --sonarurl="${{ secrets.SONAR_HOST }}" \
@@ -115,8 +117,8 @@ jobs:
            --branch="${{ github.ref_name }}" \
            --sonartoken="${{ secrets.SONAR_TOKEN }}" \
            --output sonarreport_client.html \
-           --application="$PROJECT_NAME_CLIENT" \
-           --sonarcomponent="$PROJECT_NAME_CLIENT"
+           --application="$PROJECTKEY_CLIENT" \
+           --sonarcomponent="$PROJECTKEY_CLIENT"
 
         env:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
