@@ -40,7 +40,6 @@ import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.Store;
 
-import eu.europa.ec.eudi.signer.rssp.common.config.CryptoConfig;
 import eu.europa.ec.eudi.signer.rssp.hsm.HSMService;
 
 import eu.europa.esig.dss.cades.signature.CMSSignedDocument;
@@ -62,12 +61,6 @@ import eu.europa.esig.dss.validation.CommonCertificateVerifier;
  * Utility for signing data like document hashes
  */
 public class CryptoSigner {
-
-    private CryptoConfig config;
-
-    public CryptoSigner(CryptoConfig config) {
-        this.config = config;
-    }
 
     /**
      * Cryptographically sign the given data with the supplied signature and private

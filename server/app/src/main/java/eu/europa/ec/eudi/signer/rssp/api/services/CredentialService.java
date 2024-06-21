@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.csc.payload.CredentialInfo;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.entities.Credential;
@@ -41,11 +42,13 @@ public class CredentialService {
 
 	private final CredentialRepository credentialRepository;
 	private final CryptoService cryptoService;
+	private final AuthProperties authProperties;
 
 	public CredentialService(CredentialRepository credentialRepository,
-			CryptoService cryptoService) {
+			CryptoService cryptoService, AuthProperties authProperties) {
 		this.credentialRepository = credentialRepository;
 		this.cryptoService = cryptoService;
+		this.authProperties = authProperties;
 	}
 
 	/**
@@ -71,7 +74,9 @@ public class CredentialService {
 					+ " (createCredential in CredentialService.class) "
 					+ SignerError.CredentialAliasAlreadyExists.getDescription();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, owner, 1, SignerError.CredentialAliasAlreadyExists.getDescription());
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, owner, 1,
+					SignerError.CredentialAliasAlreadyExists.getDescription());
 
 			throw new ApiException(SignerError.CredentialAliasAlreadyExists,
 					"The credential alias " + alias + " chosen is not valid. The aliases must be unique.");
@@ -100,7 +105,8 @@ public class CredentialService {
 					+ " (deleteCredential in CredentialService.class) "
 					+ SignerError.CredentialNotFound.getDescription();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, ownerId, 2, "");
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, ownerId, 2, "");
 			throw new ApiException(SignerError.CredentialNotFound,
 					"Attempted to delete the credential " + credentialAlias + ", that does not exist.");
 		}
@@ -110,7 +116,8 @@ public class CredentialService {
 				+ " | Valid From: " + credential.get().getValidFrom()
 				+ " | Valid To: " + credential.get().getValidTo();
 		credentialRepository.deleteByOwnerAndAlias(ownerId, credentialAlias);
-		LoggerUtil.logs_user(1, ownerId, 2, LoggerUtil.desc);
+		LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
+				1, ownerId, 2, LoggerUtil.desc);
 	}
 
 	// ...............................

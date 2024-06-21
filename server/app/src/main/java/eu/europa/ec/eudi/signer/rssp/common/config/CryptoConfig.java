@@ -24,7 +24,6 @@ public class CryptoConfig {
     private String keyAlgorithm;
     private int keySize;
     private String signatureAlgorithm;
-    // private String passphrase;
 
     /**
      * Key generation algorithm name
@@ -61,16 +60,4 @@ public class CryptoConfig {
     public void setKeySize(int keySize) {
         this.keySize = keySize;
     }
-
-    /*
-     * Encryption passphrase: used to encrypt private keys at rest.
-     *
-     * public String getPassphrase() {
-     * return passphrase;
-     * }
-     * 
-     * public void setPassphrase(String passphrase) {
-     * this.passphrase = passphrase;
-     * }
-     */
 }
