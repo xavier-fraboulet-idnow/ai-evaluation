@@ -69,7 +69,7 @@ public class CryptoService {
     private final HSMService hsmService;
     private final EJBCAService ejbcaService;
     private final AuthProperties authProperties;
-    private static final int ivLength = 12;
+    private static final int IVLENGTH = 12;
 
     public CryptoService(@Autowired ConfigRepository configRep, @Autowired CSCProperties cscProperties,
             @Autowired HSMService hsmService, @Autowired EJBCAService ejbcaService,
@@ -94,7 +94,7 @@ public class CryptoService {
             // generates a secret key to wrap the private keys from the HSM
             byte[] secretKeyBytes = this.hsmService.initSecretKey();
 
-            byte[] iv = new byte[ivLength];
+            byte[] iv = new byte[IVLENGTH];
             SecureRandom secureRandom = new SecureRandom();
             secureRandom.nextBytes(iv);
 
@@ -117,7 +117,7 @@ public class CryptoService {
             byte[] encryptedSecretKeyBytes = sk.getSecretKey();
 
             ByteBuffer byteBuffer = ByteBuffer.wrap(encryptedSecretKeyBytes);
-            byte[] iv = new byte[ivLength];
+            byte[] iv = new byte[IVLENGTH];
             byteBuffer.get(iv);
             byte[] encryptedSecretKey = new byte[byteBuffer.remaining()];
             byteBuffer.get(encryptedSecretKey);
