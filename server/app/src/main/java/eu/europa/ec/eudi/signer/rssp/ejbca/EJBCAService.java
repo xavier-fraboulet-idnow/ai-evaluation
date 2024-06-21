@@ -153,7 +153,14 @@ public class EJBCAService {
     private List<X509Certificate> getCertificateFromHttpResponse(String result) throws Exception {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
         List<X509Certificate> certs = new ArrayList<>();
-        JSONObject jsonResult = new JSONObject(result);
+
+        JSONObject jsonResult;
+        try{
+            jsonResult = new JSONObject(result);
+        }
+        catch (JSONException e){
+            throw new Exception("Response from EJBCA doesn't contain a certificate value.");
+        }
 
         if (!jsonResult.keySet().contains("certificate"))
             throw new Exception("Response from EJBCA doesn't contain a certificate value.");
