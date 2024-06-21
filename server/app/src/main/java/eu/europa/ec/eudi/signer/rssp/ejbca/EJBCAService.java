@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,31 +155,22 @@ public class EJBCAService {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
         List<X509Certificate> certs = new ArrayList<>();
 
-        JSONObject jsonResult;
-        try{
-            jsonResult = new JSONObject(result);
-        }
-        catch (JSONException e){
+        ObjectMapper objectMapper = new ObjectMapper();
+        Pkcs10EnrollResponseBody body = objectMapper.readValue(result, Pkcs10EnrollResponseBody.class);
+
+        if(body.getCertificate() == null){
             throw new Exception("Response from EJBCA doesn't contain a certificate value.");
         }
 
-        if (!jsonResult.keySet().contains("certificate"))
-            throw new Exception("Response from EJBCA doesn't contain a certificate value.");
-
-        // Get the Certificate from the response from the EJBCA.
-        String certificateContent = jsonResult.getString("certificate");
-        byte[] certificateBytes = Base64.getDecoder().decode(certificateContent);
+        byte[] certificateBytes = Base64.getDecoder().decode(body.getCertificate());
         ByteArrayInputStream inputStream = new ByteArrayInputStream(certificateBytes);
         X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(inputStream);
         certs.add(certificate);
 
-        // If the response from the EJBCA includes the Certificate Chain then get the
-        // Certificate Chain from the response
-        boolean includeChain = this.ejbcaProperties.getIncludeChain();
-        if (includeChain && jsonResult.keySet().contains("certificate_chain")) {
-            JSONArray certificateChain = jsonResult.getJSONArray("certificate_chain");
-            for (int i = 0; i < certificateChain.length(); i++) {
-                byte[] singleCertificateBytes = Base64.getDecoder().decode(certificateChain.getString(i));
+        if(this.ejbcaProperties.getIncludeChain() && body.getCertificate_chain() != null){
+            List<String> certificateChain = body.getCertificate_chain();
+            for (String s : certificateChain) {
+                byte[] singleCertificateBytes = Base64.getDecoder().decode(s);
                 ByteArrayInputStream inputStreamSingleCertificate = new ByteArrayInputStream(singleCertificateBytes);
                 X509Certificate singleCertificate = (X509Certificate) certificateFactory
                         .generateCertificate(inputStreamSingleCertificate);
