@@ -16,6 +16,10 @@
 
 package eu.europa.ec.eudi.signer.rssp.crypto;
 
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +60,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.security.auth.x500.X500Principal;
 
 @Component
 public class CryptoService {
@@ -228,8 +233,7 @@ public class CryptoService {
         }
 
         try {
-            byte[][] keysValues = this.hsmService.generateRSAKeyPair(this.config.getKeySize());
-            return keysValues;
+            return this.hsmService.generateRSAKeyPair(this.config.getKeySize());
         } catch (Exception e) { // Fail to generate the RSA Key Pair
             String logMessage = SignerError.FailedCreatingKeyPair.getCode()
                     + "(generateKeyPair in CryptoService.class) "
@@ -253,7 +257,7 @@ public class CryptoService {
      * @param givenName        the given name of the owner of the certificate to
      *                         create
      * @param surname          the surname of the owner of the certificate to create
-     * @param subjectDN        the subject of the certificate
+     * @param subjectCN        the subject of the certificate
      * @param alias            the alias of the credential for which it is going to
      *                         be created the certificate
      * @param countryCode      the country code of the owner
@@ -262,13 +266,13 @@ public class CryptoService {
      *         the certificate chain)
      */
     public List<X509Certificate> generateCertificates(String owner, BigInteger ModulusBI, BigInteger PublicExponentBI,
-            String givenName, String surname, String subjectDN, String alias, String countryCode,
+            String givenName, String surname, String subjectCN, String alias, String countryCode,
             byte[] privKeyValues) throws ApiException {
 
         try {
             // Create a certificate Signing Request for the keys
             byte[] csrInfo = generator.generateCertificateRequestInfo(ModulusBI, PublicExponentBI, givenName, surname,
-                    subjectDN, countryCode, "Trust Provider Signer EUDIW", alias);
+                    subjectCN, countryCode, "Trust Provider Signer EUDIW", alias);
             byte[] signature = hsmService.signDTBSwithRSAPKCS11(privKeyValues, csrInfo);
             PKCS10CertificationRequest certificateHSM = generator.generateCertificateRequest(csrInfo, signature);
 
@@ -277,8 +281,11 @@ public class CryptoService {
                     "-----END CERTIFICATE REQUEST-----";
 
             // Makes a request to the CA
-            return this.ejbcaService.certificateRequest(certificateString, countryCode);
-
+            List<X509Certificate> certificateAndCertificateChain = this.ejbcaService.certificateRequest(certificateString, countryCode);
+            if(!validateCertificateFromCA(certificateAndCertificateChain, givenName, surname, subjectCN, countryCode)){
+                throw new Exception("Certificates received from CA are not valid");
+            }
+            return certificateAndCertificateChain;
         } catch (Exception e) {
             String logMessage = SignerError.FailedCreatingCertificate.getCode()
                     + "(generateCertificates in CryptoService.class) "
@@ -289,6 +296,61 @@ public class CryptoService {
             throw new ApiException(SignerError.FailedCreatingCertificate,
                     SignerError.FailedCreatingKeyPair.getDescription());
         }
+    }
+
+    public boolean validateCertificateFromCA(List<X509Certificate> certificatesAndCertificateChain, String givenName, String surname, String subjectCN, String countryCode){
+        if(certificatesAndCertificateChain.isEmpty()){
+            return false;
+        }
+
+        String expectedIssuerSubjectCN = this.ejbcaService.getCertificateAuthorityNameByCountry(countryCode);
+
+        X509Certificate certificate = certificatesAndCertificateChain.get(0);
+        X500Principal subjectX500Principal = certificate.getSubjectX500Principal();
+        X500Name x500SubjectName = new X500Name(subjectX500Principal.getName());
+        X500Principal issuerX500Principal = certificate.getIssuerX500Principal();
+        X500Name x500IssuerName = new X500Name(issuerX500Principal.getName());
+
+        RDN[] rdnGivenName = x500SubjectName.getRDNs(BCStyle.GIVENNAME);
+        if(rdnListContainsValue(rdnGivenName, givenName)){
+            return false;
+        }
+
+        RDN[] rdnSurname = x500SubjectName.getRDNs(BCStyle.SURNAME);
+        if(rdnListContainsValue(rdnSurname, surname)){
+            return false;
+        }
+
+        RDN[] rdnSubjectCN = x500SubjectName.getRDNs(BCStyle.CN);
+        if(rdnListContainsValue(rdnSubjectCN, subjectCN)){
+            return false;
+        }
+
+        RDN[] rdnCountry = x500SubjectName.getRDNs(BCStyle.C);
+        if(rdnListContainsValue(rdnCountry, countryCode)){
+            return false;
+        }
+
+
+        // System.out.println(expectedIssuerSubjectCN);
+        RDN[] rdnIssuerSubjectCN = x500IssuerName.getRDNs(BCStyle.CN);
+        return !rdnListContainsValue(rdnIssuerSubjectCN, expectedIssuerSubjectCN);
+    }
+
+    // Verifies if the rdnListFromCertificate doesn't have the value
+    // if the value is not present, returns true
+    public static boolean rdnListContainsValue(RDN[] rdnListFromCertificate, String value){
+        if(rdnListFromCertificate == null)
+            return true;
+
+        for (RDN rdn : rdnListFromCertificate) {
+            String name = IETFUtils.valueToString(rdn.getFirst().getValue());
+            // System.out.println(name);
+            if(name.equals(value))
+                return false;
+        }
+
+        return true;
     }
 
     /**
@@ -319,7 +381,7 @@ public class CryptoService {
                     signingKeyWrapped, this.hsmService);
             return Base64.getEncoder().encodeToString(bytes);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             throw new ApiException(SignerError.FailedSigningData, e);
         }
     }

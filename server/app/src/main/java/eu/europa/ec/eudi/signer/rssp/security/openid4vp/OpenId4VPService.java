@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map.Entry;
 
+import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,15 +120,20 @@ public class OpenId4VPService {
      *                                                     token
      * @throws NoSuchAlgorithmException
      */
-    public AuthResponse loadUserFromVerifierResponseAndGetJWTToken(String messageFromVerifier,
-            String presentationDefinitionId, String presentationDefinitionInputDescriptorsId)
-            throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException {
+    public AuthResponse loadUserFromVerifierResponseAndGetJWTToken(String messageFromVerifier)
+            throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException, Exception {
 
-        JSONObject vp = new JSONObject(messageFromVerifier);
-        VPValidator temporary = new VPValidator(vp, presentationDefinitionId, presentationDefinitionInputDescriptorsId,
+        JSONObject vp;
+        try{
+            vp =  new JSONObject(messageFromVerifier);
+        }
+        catch (JSONException e){
+            throw new Exception("The response from the Verifier doesn't contain a correctly formatted JSON string.");
+        }
+        VPValidator validator = new VPValidator(vp, VerifierClient.PresentationDefinitionId, VerifierClient.PresentationDefinitionInputDescriptorsId,
                 this.ejbcaService);
         Map<Integer, String> logsMap = new HashMap<>();
-        MDoc document = temporary.loadAndVerifyDocumentForVP(logsMap);
+        MDoc document = validator.loadAndVerifyDocumentForVP(logsMap);
         UserOIDTemporaryInfo user = loadUserFromDocument(document);
         String token = addToDBandCreateJWTToken(user.getUser(), user.getGivenName(), user.getFamilyName(), logsMap);
         return new AuthResponse(token);
@@ -138,11 +145,6 @@ public class OpenId4VPService {
      * 
      * @param messageFromVerifier                      the message received from the
      *                                                 verifier
-     * @param presentationDefinitionId                 the id from the presentation
-     *                                                 definition of the request
-     * @param presentationDefinitionInputDescriptorsId the id of the input
-     *                                                 descriptors in the
-     *                                                 presentation definition
      * @param ejbcaService                             the EJBCA Service
      * @param logsMap                                  an hash map to load the logs
      *                                                 from the validator
@@ -151,11 +153,17 @@ public class OpenId4VPService {
      * @throws VPTokenInvalid
      * @throws NoSuchAlgorithmException
      */
-    public User loadUserFromVerifierResponse(String messageFromVerifier, String presentationDefinitionId,
-            String presentationDefinitionInputDescriptorsId, EJBCAService ejbcaService, Map<Integer, String> logsMap)
-            throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException {
+    public User loadUserFromVerifierResponse(String messageFromVerifier, EJBCAService ejbcaService, Map<Integer, String> logsMap)
+            throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException, Exception {
 
-        JSONObject responseVerifier = new JSONObject(messageFromVerifier);
+        JSONObject responseVerifier;
+        try{
+            responseVerifier =  new JSONObject(messageFromVerifier);
+        }
+        catch (JSONException e){
+            throw new Exception("The response from the Verifier doesn't contain a correctly formatted JSON string.");
+        }
+
         VPValidator validator = new VPValidator(responseVerifier, VerifierClient.PresentationDefinitionId,
                 VerifierClient.PresentationDefinitionInputDescriptorsId, ejbcaService);
         MDoc document = validator.loadAndVerifyDocumentForVP(logsMap);

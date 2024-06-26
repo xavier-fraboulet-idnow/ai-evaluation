@@ -79,8 +79,7 @@ public class CSCCredentialsService {
 	@Autowired
 	private EJBCAService ejbcaService;
 
-	private AuthProperties authProperties;
-
+	private final AuthProperties authProperties;
 	private final CredentialService credentialService;
 	private final UserService userService;
 	private final CryptoService cryptoService;
@@ -277,14 +276,12 @@ public class CSCCredentialsService {
 			throws FailedConnectionVerifier, TimeoutException, ApiException, AccessCredentialDeniedException,
 			VerifiablePresentationVerificationException, VPTokenInvalid {
 		final String credentialID = authorizeRequest.getCredentialID();
-		User loaded;
+		User loaded = null;
 
 		try {
 			String message = verifierClient.getVPTokenFromVerifier(user.getId(), VerifierClient.Authorization);
 			Map<Integer, String> logsMap = new HashMap<>();
-			loaded = this.userOID4VPService.loadUserFromVerifierResponse(message,
-					VerifierClient.PresentationDefinitionId, VerifierClient.PresentationDefinitionInputDescriptorsId,
-					this.ejbcaService, logsMap);
+			loaded = this.userOID4VPService.loadUserFromVerifierResponse(message, this.ejbcaService, logsMap);
 			for (Entry<Integer, String> l : logsMap.entrySet())
 				LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 						this.authProperties.getDatasourcePassword(), 1, user.getId(), l.getKey(), l.getValue());

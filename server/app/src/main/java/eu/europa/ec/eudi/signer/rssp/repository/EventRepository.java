@@ -40,7 +40,7 @@ public class EventRepository {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getLocalizedMessage());
         }
         return result;
     }
