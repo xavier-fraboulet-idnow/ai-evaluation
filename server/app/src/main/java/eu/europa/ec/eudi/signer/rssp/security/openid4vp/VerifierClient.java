@@ -49,7 +49,7 @@ public class VerifierClient {
     public static String Authentication = "Authentication";
     public static String Authorization = "Authorization";
     public static String PresentationDefinitionId = "32f54163-7166-48f1-93d8-ff217bdb0653";
-    public static String PresentationDefinitionInputDescriptorsId = "eu.europa.ec.eudiw.pid.1";
+    public static String PresentationDefinitionInputDescriptorsId = "eu.europa.ec.eudi.pid.1";
 
     private static final Logger log = LoggerFactory.getLogger(VerifierClient.class);
 
@@ -93,19 +93,19 @@ public class VerifierClient {
         String presentationDefinition = "{" +
                 "'id': '32f54163-7166-48f1-93d8-ff217bdb0653'," +
                 "'input_descriptors': [{" +
-                "'id': 'eu.europa.ec.eudiw.pid.1'," +
+                "'id': '"+PresentationDefinitionInputDescriptorsId+"'," +
                 "'name': 'EUDI PID'," +
                 "'purpose': 'We need to verify your identity'," +
                 "'format': {'mso_mdoc': {" +
                 "'alg': ['ES256', 'ES384', 'ES512', 'EdDSA'] } }," +
                 "'constraints': {" +
                 "'fields': [" +
-                "{'path': [\"$['eu.europa.ec.eudiw.pid.1']['family_name']\"], 'intent_to_retain': true}," +
-                "{\"path\": [\"$['eu.europa.ec.eudiw.pid.1']['given_name']\"],  \"intent_to_retain\": true}," +
-                "{\"path\": [\"$['eu.europa.ec.eudiw.pid.1']['birth_date']\"],  \"intent_to_retain\": true}," +
-                "{\"path\": [\"$['eu.europa.ec.eudiw.pid.1']['age_over_18']\"], \"intent_to_retain\": false}," +
-                "{\"path\": [\"$['eu.europa.ec.eudiw.pid.1']['issuing_authority']\"], \"intent_to_retain\": true}," +
-                "{\"path\": [\"$['eu.europa.ec.eudiw.pid.1']['issuing_country']\"], \"intent_to_retain\": true}" +
+                "{'path': [\"$['"+PresentationDefinitionInputDescriptorsId+"']['family_name']\"], 'intent_to_retain': true}," +
+                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['given_name']\"],  \"intent_to_retain\": true}," +
+                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['birth_date']\"],  \"intent_to_retain\": true}," +
+                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['age_over_18']\"], \"intent_to_retain\": false}," +
+                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['issuing_authority']\"], \"intent_to_retain\": true}," +
+                "{\"path\": [\"$['"+PresentationDefinitionInputDescriptorsId+"']['issuing_country']\"], \"intent_to_retain\": true}" +
                 "]}}]}";
 
         JSONObject presentationDefinitionJsonObject = new JSONObject(presentationDefinition);
