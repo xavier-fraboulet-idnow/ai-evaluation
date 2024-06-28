@@ -260,7 +260,7 @@ If the signing is successful, you will be redirected to a signing page where you
 
 ## Demo videos
 
-[Authentication and Certificate Issuance](https://github.com/devisefutures/assina/blob/39-add-the-videos/video/eudiwGenCert_720.mp4)
+[Authentication and Certificate Issuance](video/eudiwGenCert_720.mp4)
 
 [Authentication and Certificate Issuance](https://github.com/devisefutures/assina/assets/62109899/b58dfaa8-963d-41ef-b938-5eb07b48ca43)
 
