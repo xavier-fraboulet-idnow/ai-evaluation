@@ -37,8 +37,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
         EJBCAProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class })
 public class RSSPApplication {
 
-    // private final static threadConfig threadConfig = new threadConfig();
-
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(RSSPApplication.class);
         application.addListeners(new ApplicationPidFileWriter("./rssp.pid"));

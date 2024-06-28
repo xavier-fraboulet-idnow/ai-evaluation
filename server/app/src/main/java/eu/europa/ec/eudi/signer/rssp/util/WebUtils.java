@@ -21,6 +21,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import javax.net.ssl.KeyManager;
@@ -45,14 +46,13 @@ public class WebUtils {
     }
 
     public static HttpResponse httpGetRequests(String url, Map<String, String> headers) throws Exception {
-        HttpClient httpClient = HttpClients.createDefault();
-        HttpGet request = new HttpGet(url);
-
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            request.setHeader(entry.getKey(), entry.getValue());
+        try(CloseableHttpClient httpClient = HttpClients.createDefault() ) {
+            HttpGet request = new HttpGet(url);
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                request.setHeader(entry.getKey(), entry.getValue());
+            }
+            return httpClient.execute(request);
         }
-
-        return httpClient.execute(request);
     }
 
     private static HttpResponse httpGetRequestCommon(HttpClient httpClient, String url,

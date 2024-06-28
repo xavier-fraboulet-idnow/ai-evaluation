@@ -161,15 +161,15 @@ public class PdfSupport {
         PDRectangle rect = createSignatureRectangle(document, humanRect);
         InputStream template = createVisualSignatureTemplate(document, document.getNumberOfPages() - 1, rect,
                 signature);
-        SignatureOptions options = new SignatureOptions();
-        options.setVisualSignature(template);
-        options.setPage(document.getNumberOfPages() - 1);
-
-        document.addSignature(signature, options);
-        ExternalSigningSupport externalSigning = document.saveIncrementalForExternalSigning(output);
-        final InputStream content = externalSigning.getContent();
-        byte[] cmsSignature = signPdfContent(pdfName, content, context);
-        externalSigning.setSignature(cmsSignature);
+        try(SignatureOptions options = new SignatureOptions()){
+            options.setVisualSignature(template);
+            options.setPage(document.getNumberOfPages() - 1);
+            document.addSignature(signature, options);
+            ExternalSigningSupport externalSigning = document.saveIncrementalForExternalSigning(output);
+            final InputStream content = externalSigning.getContent();
+            byte[] cmsSignature = signPdfContent(pdfName, content, context);
+            externalSigning.setSignature(cmsSignature);
+        }
     }
 
     // Utilities for permissions Copied from the Apache Pdf-Box examples
