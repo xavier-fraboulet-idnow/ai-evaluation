@@ -264,7 +264,7 @@ If the signing is successful, you will be redirected to a signing page where you
 
 [Authentication and Certificate Issuance](https://github.com/devisefutures/assina/assets/62109899/b58dfaa8-963d-41ef-b938-5eb07b48ca43)
 
-[Authentication and PDF File Signing](https://github.com/devisefutures/assina/blob/39-add-the-videos/video/eudiwSignCert_720.mp4)
+[Authentication and PDF File Signing](video/eudiwSignCert_720.mp4)
 
 [Authentication and PDF File Signing](https://github.com/devisefutures/assina/assets/62109899/0939ec14-9188-46b4-9c29-ed32dc3b5514)
 
