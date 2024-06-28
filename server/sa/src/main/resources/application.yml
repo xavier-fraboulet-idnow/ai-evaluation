@@ -27,7 +27,7 @@ spring:
             file-size-threshold: 20KB
 
 file:
-    uploadDir: ./pdf
+    uploadDir: ./pdf/
     extensions: pdf
 
 rssp:

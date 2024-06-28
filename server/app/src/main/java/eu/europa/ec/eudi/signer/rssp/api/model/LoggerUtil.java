@@ -28,15 +28,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class LoggerUtil {
     private static final String URL = "jdbc:mysql://localhost:3306/assina?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false";
-    private static final String USER = "assinaadmin";
-    private static final String PASSWORD = "assinaadmin";
     public static String desc = "";
 
     private static final Logger logger = LogManager.getLogger(LoggerUtil.class);
 
-    public static void logs_user(int success, String usersID, int eventTypeID, String info) {
+    public static void logsUser(String dbUsername, String dbPassword, int success, String usersID, int eventTypeID,
+                                String info) {
 
-        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try (Connection connection = DriverManager.getConnection(URL, dbUsername, dbPassword)) {
             String sql = "INSERT INTO logs_user (success, usersID, eventTypeID, info) VALUES (?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, success);

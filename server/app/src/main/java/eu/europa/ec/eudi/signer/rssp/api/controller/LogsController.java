@@ -17,13 +17,7 @@
 package eu.europa.ec.eudi.signer.rssp.api.controller;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.api.payload.LogDTO;
 import eu.europa.ec.eudi.signer.rssp.api.services.UserService;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.entities.LogsUser;
 import eu.europa.ec.eudi.signer.rssp.entities.User;
@@ -48,15 +43,18 @@ public class LogsController {
     private static final Logger logger = LogManager.getLogger(LogsController.class);
     private final UserService userService;
     private final LogsUserRepository repository;
-    private final HashMap<Integer, String> events;
+    private final Map<Integer, String> events;
     private final SimpleDateFormat formatter;
+    private final AuthProperties authProperties;
 
     public LogsController(@Autowired final LogsUserRepository logsUserRepository,
-            @Autowired UserService userService) {
+            @Autowired UserService userService, @Autowired AuthProperties authProperties) {
         this.userService = userService;
         this.repository = logsUserRepository;
-        this.events = EventRepository.event();
+        this.events = EventRepository.event(authProperties.getDatasourceUsername(),
+                authProperties.getDatasourcePassword());
         this.formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        this.authProperties = authProperties;
     }
 
     /**
@@ -125,7 +123,8 @@ public class LogsController {
             return ResponseEntity.badRequest().body(SignerError.UserNotFound.getFormattedMessage());
         }
 
-        LoggerUtil.logs_user(1, id, 5, "");
+        LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
+                1, id, 5, "");
         return ResponseEntity.ok("ok");
     }
 
@@ -150,7 +149,8 @@ public class LogsController {
             return ResponseEntity.badRequest().body(SignerError.UserNotFound.getFormattedMessage());
         }
 
-        LoggerUtil.logs_user(1, id, 7, "File Name: " + fileName);
+        LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(), this.authProperties.getDatasourcePassword(),
+                1, id, 7, "File Name: " + fileName);
         return ResponseEntity.ok("ok");
     }
 }

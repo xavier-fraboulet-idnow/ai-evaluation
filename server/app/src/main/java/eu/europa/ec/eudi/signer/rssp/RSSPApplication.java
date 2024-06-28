@@ -17,6 +17,7 @@
 package eu.europa.ec.eudi.signer.rssp;
 
 import eu.europa.ec.eudi.signer.rssp.common.config.AppProperties;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.TrustedIssuersCertificatesProperties;
 
@@ -33,7 +34,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 /** Main Spring Boot application class for Signer application */
 @SpringBootApplication(scanBasePackages = "eu.europa.ec.eudi.signer.rssp")
 @EnableConfigurationProperties({ AppProperties.class, CSCProperties.class, VerifierProperties.class,
-        EJBCAProperties.class, TrustedIssuersCertificatesProperties.class })
+        EJBCAProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class })
 public class RSSPApplication {
 
     // private final static threadConfig threadConfig = new threadConfig();

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map.Entry;
 
+import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,7 @@ import org.springframework.stereotype.Service;
 import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.api.model.RoleName;
 import eu.europa.ec.eudi.signer.rssp.api.payload.AuthResponse;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.common.error.VPTokenInvalid;
 import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerificationException;
@@ -51,17 +54,21 @@ public class OpenId4VPService {
 
     private static final Logger log = LoggerFactory.getLogger(OpenId4VPService.class);
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
+    private final AuthenticationManager authenticationManager;
+    private final UserAuthenticationTokenProvider tokenProvider;
+    private final EJBCAService ejbcaService;
+    private final AuthProperties authProperties;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UserAuthenticationTokenProvider tokenProvider;
-
-    @Autowired
-    private EJBCAService ejbcaService;
+    public OpenId4VPService(UserRepository repository, AuthenticationManager authenticationManager,
+            UserAuthenticationTokenProvider tokenProvider, EJBCAService ejbcaService, AuthProperties authProperties) {
+        this.repository = repository;
+        this.authenticationManager = authenticationManager;
+        this.tokenProvider = tokenProvider;
+        this.ejbcaService = ejbcaService;
+        this.authProperties = authProperties;
+    }
 
     public static class UserOIDTemporaryInfo {
         private final User user;
@@ -113,15 +120,20 @@ public class OpenId4VPService {
      *                                                     token
      * @throws NoSuchAlgorithmException
      */
-    public AuthResponse loadUserFromVerifierResponseAndGetJWTToken(String messageFromVerifier,
-            String presentationDefinitionId, String presentationDefinitionInputDescriptorsId)
-            throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException {
+    public AuthResponse loadUserFromVerifierResponseAndGetJWTToken(String messageFromVerifier)
+            throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException, Exception {
 
-        JSONObject vp = new JSONObject(messageFromVerifier);
-        VPValidator temporary = new VPValidator(vp, presentationDefinitionId, presentationDefinitionInputDescriptorsId,
+        JSONObject vp;
+        try{
+            vp =  new JSONObject(messageFromVerifier);
+        }
+        catch (JSONException e){
+            throw new Exception("The response from the Verifier doesn't contain a correctly formatted JSON string.");
+        }
+        VPValidator validator = new VPValidator(vp, VerifierClient.PresentationDefinitionId, VerifierClient.PresentationDefinitionInputDescriptorsId,
                 this.ejbcaService);
         Map<Integer, String> logsMap = new HashMap<>();
-        MDoc document = temporary.loadAndVerifyDocumentForVP(logsMap);
+        MDoc document = validator.loadAndVerifyDocumentForVP(logsMap);
         UserOIDTemporaryInfo user = loadUserFromDocument(document);
         String token = addToDBandCreateJWTToken(user.getUser(), user.getGivenName(), user.getFamilyName(), logsMap);
         return new AuthResponse(token);
@@ -133,11 +145,6 @@ public class OpenId4VPService {
      * 
      * @param messageFromVerifier                      the message received from the
      *                                                 verifier
-     * @param presentationDefinitionId                 the id from the presentation
-     *                                                 definition of the request
-     * @param presentationDefinitionInputDescriptorsId the id of the input
-     *                                                 descriptors in the
-     *                                                 presentation definition
      * @param ejbcaService                             the EJBCA Service
      * @param logsMap                                  an hash map to load the logs
      *                                                 from the validator
@@ -146,11 +153,17 @@ public class OpenId4VPService {
      * @throws VPTokenInvalid
      * @throws NoSuchAlgorithmException
      */
-    public User loadUserFromVerifierResponse(String messageFromVerifier, String presentationDefinitionId,
-            String presentationDefinitionInputDescriptorsId, EJBCAService ejbcaService, Map<Integer, String> logsMap)
-            throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException {
+    public User loadUserFromVerifierResponse(String messageFromVerifier, EJBCAService ejbcaService, Map<Integer, String> logsMap)
+            throws VerifiablePresentationVerificationException, VPTokenInvalid, NoSuchAlgorithmException, Exception {
 
-        JSONObject responseVerifier = new JSONObject(messageFromVerifier);
+        JSONObject responseVerifier;
+        try{
+            responseVerifier =  new JSONObject(messageFromVerifier);
+        }
+        catch (JSONException e){
+            throw new Exception("The response from the Verifier doesn't contain a correctly formatted JSON string.");
+        }
+
         VPValidator validator = new VPValidator(responseVerifier, VerifierClient.PresentationDefinitionId,
                 VerifierClient.PresentationDefinitionInputDescriptorsId, ejbcaService);
         MDoc document = validator.loadAndVerifyDocumentForVP(logsMap);
@@ -212,18 +225,24 @@ public class OpenId4VPService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         if (userInDatabase.isEmpty()) {
             for (Entry<Integer, String> l : logsMap.entrySet())
-                LoggerUtil.logs_user(1, userFromVerifierResponse.getId(), l.getKey(), l.getValue());
+                LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+                        this.authProperties.getDatasourcePassword(), 1, userFromVerifierResponse.getId(), l.getKey(),
+                        l.getValue());
 
             LoggerUtil.desc = "PID HASH: " + userFromVerifierResponse.getHash();
-            LoggerUtil.logs_user(1, userFromVerifierResponse.getId(), 4, LoggerUtil.desc);
+            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+                    this.authProperties.getDatasourcePassword(), 1, userFromVerifierResponse.getId(), 4,
+                    LoggerUtil.desc);
         } else {
             User u = userInDatabase.get();
 
             for (Entry<Integer, String> l : logsMap.entrySet())
-                LoggerUtil.logs_user(1, u.getId(), l.getKey(), l.getValue());
+                LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+                        this.authProperties.getDatasourcePassword(), 1, u.getId(), l.getKey(), l.getValue());
 
             LoggerUtil.desc = "PID HASH: " + u.getHash();
-            LoggerUtil.logs_user(1, u.getId(), 4, LoggerUtil.desc);
+            LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+                    this.authProperties.getDatasourcePassword(), 1, u.getId(), 4, LoggerUtil.desc);
         }
         return tokenProvider.createToken(authentication);
     }

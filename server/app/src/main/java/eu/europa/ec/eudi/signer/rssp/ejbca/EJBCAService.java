@@ -24,11 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.json.*;
 import org.slf4j.Logger;
@@ -63,17 +59,17 @@ public class EJBCAService {
         this.trustedIssuersCertificates = trustedIssuersCertificates;
     }
 
+    public String getCertificateAuthorityNameByCountry(String countryCode){
+        return this.ejbcaProperties.getCertificateAuthorityName(countryCode);
+    }
+
     // [0] : certificate
     // [1..] : certificate Chain
     public List<X509Certificate> certificateRequest(String certificateRequest, String countryCode) throws Exception {
 
         String certificateAuthorityName = this.ejbcaProperties.getCertificateAuthorityName(countryCode);
-        log.warn(countryCode);
-
-        String jsonBody1 = getJsonBody(certificateRequest, certificateAuthorityName);
-
-        String postUrl = "https://" + this.ejbcaProperties.getCahost() + "/ejbca/ejbca-rest-api/v1"
-                + this.ejbcaProperties.getEndpoint();
+        String certificateRequestBody = getJsonBody(certificateRequest, certificateAuthorityName);
+        String postUrl = "https://" + this.ejbcaProperties.getCahost() + "/ejbca/ejbca-rest-api/v1" + this.ejbcaProperties.getEndpoint();
 
         // Set up headers
         Map<String, String> headers = new HashMap<>();
@@ -85,18 +81,17 @@ public class EJBCAService {
         KeyManager[] keyStorePKCS12 = getKeyStoreFromPKCS12File(clientP12ArchiveFilepath, clientP12ArchivePassword);
         String ManagementCA = this.ejbcaProperties.getManagementCA();
         TrustManager[] trustManagerCA = getTrustManagerOfCACertificate(ManagementCA);
-        HttpResponse response = WebUtils.httpPostRequestsWithCustomSSLContext(trustManagerCA, keyStorePKCS12, postUrl,
-                jsonBody1, headers);
+
+        // Get Certificate from EJBCA
+        HttpResponse response = WebUtils.httpPostRequestsWithCustomSSLContext(trustManagerCA, keyStorePKCS12, postUrl, certificateRequestBody, headers);
 
         if (response.getStatusLine().getStatusCode() != 201) {
             throw new Exception("Certificate was not created by EJBCA");
         }
-
         HttpEntity entity = response.getEntity();
         if (entity == null) {
             throw new Exception("Message from EJBCA is empty");
         }
-
         InputStream inStream = entity.getContent();
         String result = WebUtils.convertStreamToString(inStream);
 
@@ -153,12 +148,19 @@ public class EJBCAService {
     private List<X509Certificate> getCertificateFromHttpResponse(String result) throws Exception {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
         List<X509Certificate> certs = new ArrayList<>();
-        JSONObject jsonResult = new JSONObject(result);
 
-        if (!jsonResult.keySet().contains("certificate"))
+        JSONObject jsonResult;
+        try{
+            jsonResult = new JSONObject(result);
+        }
+        catch (JSONException e){
+            throw new Exception("Response from EJBCA doesn't contain a correctly formatted json string.");
+        }
+
+        if (!jsonResult.keySet().contains("certificate")){
             throw new Exception("Response from EJBCA doesn't contain a certificate value.");
+        }
 
-        // Get the Certificate from the response from the EJBCA.
         String certificateContent = jsonResult.getString("certificate");
         byte[] certificateBytes = Base64.getDecoder().decode(certificateContent);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(certificateBytes);
@@ -185,6 +187,8 @@ public class EJBCAService {
         return this.trustedIssuersCertificates.getTrustIssuersCertificates().get(issuer.toString());
     }
 
+    // If the value false is return then the issuerDN certificate is NOT revoked.
+    // If the value is true then the issuerDN certificate is revoked and cannot be trusted.
     public Boolean revocationStatus(String issuerDN, String serialNumberHex) throws Exception {
         String issuerDNUrlEncode = URLEncoder.encode(issuerDN, StandardCharsets.UTF_8).replace("+", "%20");
         String getUrl = "https://" + this.ejbcaProperties.getCahost() + "/ejbca/ejbca-rest-api/v1/certificate/"
@@ -206,11 +210,9 @@ public class EJBCAService {
         if (response.getStatusLine().getStatusCode() != 200) {
             throw new Exception("Certificate was not found.");
         }
-
         if (response.getStatusLine().getStatusCode() == 404) {
             return false;
         }
-
         HttpEntity entity = response.getEntity();
         if (entity == null) {
             throw new Exception("Message from EJBCA is empty.");
@@ -218,9 +220,34 @@ public class EJBCAService {
 
         InputStream inStream = entity.getContent();
         String result = WebUtils.convertStreamToString(inStream);
+        JSONObject resultJson;
+        try{
+            resultJson = new JSONObject(result);
+        }
+        catch (JSONException e){
+            throw new Exception("The response from the revocation status request to EJBCA doesn't contain a correctly formatted JSON string.");
+        }
 
-        JSONObject resultJson = new JSONObject(result);
-        return resultJson.getBoolean("revoked");
+        Set<String> resultJsonKeySet = resultJson.keySet();
+        if(resultJsonKeySet.contains("revoked") && resultJsonKeySet.contains("issuer_dn") && resultJsonKeySet.contains("serial_number")){
+            if(!resultJson.getString("issuer_dn").equals(issuerDN)){
+                log.error("The issuer_dn in the revocation status response is not the one requested.");
+                return true;
+            }
+            if(!resultJson.getString("serial_number").equals(serialNumberHex)){
+                log.error("The serial_number in the revocation status response is not the one requested.");
+                return true;
+            }
+            return resultJson.getBoolean("revoked");
+        }
+        else{
+            log.error("Not all the expected values are present in the response, and the validation of the response can't be ensured.");
+            return true;
+        }
+
+
+
+
     }
 
 }

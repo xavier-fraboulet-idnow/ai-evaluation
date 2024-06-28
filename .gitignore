@@ -3,7 +3,6 @@
 /server/app/target/
 /server/sa/target/
 /server/logs/
-/files/*
 /client/node-modules
 /client/package-lock.json
 /**/*.log
@@ -11,6 +10,10 @@
 .idea
 .vscode
 node_modules/jquery
+
+
+/files/*
+/server/app/src/main/resources/application-auth.yml
 
 # Created by https://www.toptal.com/developers/gitignore/api/java,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=java,node

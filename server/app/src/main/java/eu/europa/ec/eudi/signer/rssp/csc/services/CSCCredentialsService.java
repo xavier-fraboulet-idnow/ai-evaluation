@@ -35,6 +35,7 @@ import eu.europa.ec.eudi.signer.rssp.api.model.LoggerUtil;
 import eu.europa.ec.eudi.signer.rssp.api.services.CredentialService;
 import eu.europa.ec.eudi.signer.rssp.api.services.UserService;
 import eu.europa.ec.eudi.signer.rssp.common.PaginationHelper;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.error.ApiException;
 import eu.europa.ec.eudi.signer.rssp.common.error.SignerError;
 import eu.europa.ec.eudi.signer.rssp.common.error.VPTokenInvalid;
@@ -73,11 +74,12 @@ public class CSCCredentialsService {
 	private VerifierClient verifierClient;
 
 	@Autowired
-	OpenId4VPService userOID4VPService;
+	private OpenId4VPService userOID4VPService;
 
 	@Autowired
 	private EJBCAService ejbcaService;
 
+	private final AuthProperties authProperties;
 	private final CredentialService credentialService;
 	private final UserService userService;
 	private final CryptoService cryptoService;
@@ -85,14 +87,13 @@ public class CSCCredentialsService {
 
 	private static final Logger logger = LogManager.getLogger(CSCCredentialsService.class);
 
-	public CSCCredentialsService(CredentialService credentialService,
-			UserService userService,
-			CryptoService cryptoService,
-			CSCSADProvider sadProvider) {
+	public CSCCredentialsService(CredentialService credentialService, UserService userService,
+			CryptoService cryptoService, CSCSADProvider sadProvider, @Autowired AuthProperties authProperties) {
 		this.credentialService = credentialService;
 		this.userService = userService;
 		this.cryptoService = cryptoService;
 		this.sadProvider = sadProvider;
+		this.authProperties = authProperties;
 	}
 
 	public CSCCredentialsListResponse listCredentials(CSCCredentialsListRequest listRequest) {
@@ -275,23 +276,23 @@ public class CSCCredentialsService {
 			throws FailedConnectionVerifier, TimeoutException, ApiException, AccessCredentialDeniedException,
 			VerifiablePresentationVerificationException, VPTokenInvalid {
 		final String credentialID = authorizeRequest.getCredentialID();
-		User loaded;
+		User loaded = null;
 
 		try {
 			String message = verifierClient.getVPTokenFromVerifier(user.getId(), VerifierClient.Authorization);
 			Map<Integer, String> logsMap = new HashMap<>();
-			loaded = this.userOID4VPService.loadUserFromVerifierResponse(message,
-					VerifierClient.PresentationDefinitionId, VerifierClient.PresentationDefinitionInputDescriptorsId,
-					this.ejbcaService, logsMap);
+			loaded = this.userOID4VPService.loadUserFromVerifierResponse(message, this.ejbcaService, logsMap);
 			for (Entry<Integer, String> l : logsMap.entrySet())
-				LoggerUtil.logs_user(1, user.getId(), l.getKey(), l.getValue());
+				LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+						this.authProperties.getDatasourcePassword(), 1, user.getId(), l.getKey(), l.getValue());
 
 		} catch (FailedConnectionVerifier e) {
 			String logMessage = SignerError.FailedConnectionToVerifier.getCode()
 					+ "(authorizeCredentialWithOID4VP in CSCCredentialsService.class): "
 					+ SignerError.FailedConnectionToVerifier.getDescription();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, user.getId(), 6, "");
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6, "");
 			throw e;
 
 		} catch (TimeoutException e) {
@@ -299,16 +300,21 @@ public class CSCCredentialsService {
 					+ "(authorizeCredentialWithOID4VP in CSCCredentialsService.class): "
 					+ SignerError.ConnectionVerifierTimedOut.getDescription();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, user.getId(), 6, "");
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6, "");
 			throw e;
 
 		} catch (VerifiablePresentationVerificationException e) {
 			if (e.getType() == VerifiablePresentationVerificationException.Integrity) {
-				LoggerUtil.logs_user(0, user.getId(), 9, "");
+				LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+						this.authProperties.getDatasourcePassword(), 0, user.getId(), 9, "");
 			} else if (e.getType() == VerifiablePresentationVerificationException.Signature) {
-				LoggerUtil.logs_user(0, user.getId(), 8, "");
+				LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+						this.authProperties.getDatasourcePassword(), 0, user.getId(), 8, "");
 			}
-			LoggerUtil.logs_user(0, user.getId(), 6, e.getError().getFormattedMessage());
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6,
+					e.getError().getFormattedMessage());
 			String logMessage = e.getError().getCode()
 					+ "(authorizeCredentialWithOID4VP in CSCCredentialsService.class) " + e.getError().getDescription()
 					+ ": " + e.getMessage();
@@ -316,16 +322,20 @@ public class CSCCredentialsService {
 			throw e;
 
 		} catch (VPTokenInvalid e) { // there were already added the logs
-			LoggerUtil.logs_user(0, user.getId(), 6, e.getError().getFormattedMessage());
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6,
+					e.getError().getFormattedMessage());
 			throw e;
 		} catch (ApiException e) { // there were already added the logs
-			LoggerUtil.logs_user(0, user.getId(), 6, "");
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6, "");
 			throw e;
 		} catch (Exception e) {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (authorizeCredentialWithOID4VP in CSCCredentialsService.class) " + e.getMessage();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, user.getId(), 6, "");
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6, "");
 			throw new ApiException(SignerError.SigningNotAuthorized,
 					"The access to the credentials was not authorized.");
 		}
@@ -334,7 +344,8 @@ public class CSCCredentialsService {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (authorizeCredentialWithOID4VP in CSCCredentialsService.class) It was not possible to load the data from the VP Token in the authorization proccess.";
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, user.getId(), 6, "");
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6, "");
 			throw new ApiException(SignerError.SigningNotAuthorized,
 					"The access to the credentials was not authorized.");
 		}
@@ -343,7 +354,8 @@ public class CSCCredentialsService {
 			String logMessage = SignerError.AccessCredentialDenied.getCode()
 					+ " (authorizeCredentialWithOID4VP in CSCCredentialsService.class) The VP Token received does not have the required data to authorize the signing operation and the authorization was denied.";
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, user.getId(), 6, "");
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6, "");
 			throw new AccessCredentialDeniedException();
 		}
 
@@ -382,13 +394,15 @@ public class CSCCredentialsService {
 					VerifierClient.Authorization);
 			return response;
 		} catch (ApiException e) {
-			LoggerUtil.logs_user(0, id, 6, e.getMessage());
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, id, 6, e.getMessage());
 			throw e;
 		} catch (Exception e) {
 			String logMessage = SignerError.UnexpectedError.getCode()
 					+ " (authorizationLinkCredential in CSCCredentialsService.class) " + e.getMessage();
 			logger.error(logMessage);
-			LoggerUtil.logs_user(0, id, 6, e.getMessage());
+			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
+					this.authProperties.getDatasourcePassword(), 0, id, 6, e.getMessage());
 			throw new ApiException(SignerError.UnexpectedError, e.getMessage());
 
 		}

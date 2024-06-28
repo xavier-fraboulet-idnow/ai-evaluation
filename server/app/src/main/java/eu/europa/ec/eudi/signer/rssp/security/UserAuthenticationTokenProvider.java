@@ -22,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import eu.europa.ec.eudi.signer.rssp.common.config.AppProperties;
+import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
+import eu.europa.ec.eudi.signer.rssp.common.config.AppProperties.Auth;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProvider;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProviderConfig;
 import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtToken;
@@ -34,9 +36,13 @@ public class UserAuthenticationTokenProvider {
 
     private final JwtProvider jwtProvider;
 
-    public UserAuthenticationTokenProvider(AppProperties appProperties) {
-        JwtProviderConfig jwtConfig = appProperties.getAuth();
-        jwtProvider = new JwtProvider(jwtConfig);
+    public UserAuthenticationTokenProvider(AppProperties appProperties, AuthProperties authProperties) {
+        Auth jwtConfig = appProperties.getAuth();
+        JwtProviderConfig jwtProviderConfig = new JwtProviderConfig();
+        jwtProviderConfig.setLifetimeMinutes(jwtConfig.getLifetimeMinutes());
+        jwtProviderConfig.setType(jwtConfig.getType());
+        jwtProviderConfig.setTokenSecret(authProperties.getJwtTokenSecret());
+        jwtProvider = new JwtProvider(jwtProviderConfig);
     }
 
     public String createToken(Authentication authentication) {

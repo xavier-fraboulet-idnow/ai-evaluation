@@ -33,7 +33,6 @@ import java.security.cert.X509Certificate;
 public class PemConverter {
 
     public PemConverter(CryptoConfig config) {
-
         // Make sure the BC Provider is available
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }

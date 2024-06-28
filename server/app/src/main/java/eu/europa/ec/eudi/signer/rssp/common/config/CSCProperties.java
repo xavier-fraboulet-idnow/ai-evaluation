@@ -20,7 +20,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 
 import eu.europa.ec.eudi.signer.csc.model.AbstractInfo;
-import eu.europa.ec.eudi.signer.rssp.security.jwt.JwtProviderConfig;
 
 @PropertySource("file:application.yml")
 @ConfigurationProperties(prefix = "csc")
@@ -45,7 +44,7 @@ public class CSCProperties {
     public static class Crypto extends CryptoConfig {
     }
 
-    public static class Sad extends JwtProviderConfig {
+    public static class Sad extends TokenCommonConfig {
     }
 
     public static class Api {
@@ -73,7 +72,7 @@ public class CSCProperties {
         return crypto;
     }
 
-    public JwtProviderConfig getSad() {
+    public Sad getSad() {
         return sad;
     }
 
