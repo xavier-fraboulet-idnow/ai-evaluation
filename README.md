@@ -262,11 +262,11 @@ If the signing is successful, you will be redirected to a signing page where you
 
 [Authentication and Certificate Issuance](video/eudiwGenCert_720.mp4)
 
-[Authentication and Certificate Issuance](https://github.com/devisefutures/assina/assets/62109899/b58dfaa8-963d-41ef-b938-5eb07b48ca43)
+[Authentication and Certificate Issuance](https://github.com/niscy-eudiw/eudi-srv-web-trustprovider-signer-java/assets/62109899/efe034e8-d663-4585-b23d-df3a4f0a02ad)
 
 [Authentication and PDF File Signing](video/eudiwSignCert_720.mp4)
 
-[Authentication and PDF File Signing](https://github.com/devisefutures/assina/assets/62109899/0939ec14-9188-46b4-9c29-ed32dc3b5514)
+[Authentication and PDF File Signing](https://github.com/niscy-eudiw/eudi-srv-web-trustprovider-signer-java/assets/62109899/758aba74-3a22-438a-a670-5af53f292a72)
 
 ## How to contribute
 
