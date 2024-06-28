@@ -28,32 +28,33 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-        private final long MAX_AGE_SECS = 18000;
+    public Environment env;
 
-        @Autowired
-        public Environment env;
+        public WebMvcConfig(@Autowired Environment env){
+            this.env = env;
+        }
 
         @Override
         public void addCorsMappings(CorsRegistry registry) {
-                String clientUrl = env.getProperty("ASSINA_CLIENT_BASE_URL");
-                registry.addMapping("/**")
-                                .allowedOrigins(clientUrl, "http://localhost:3000",
-                                                "https://trustprovider.signer.eudiw.dev")
-                                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                                .allowedHeaders("*")
-                                .allowCredentials(true)
-                                .maxAge(MAX_AGE_SECS);
+            long MAX_AGE_SECS = 18000;
+            String clientUrl = env.getProperty("ASSINA_CLIENT_BASE_URL");
+            registry.addMapping("/**")
+                    .allowedOrigins(clientUrl, "http://localhost:3000", "https://trustprovider.signer.eudiw.dev")
+                    .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                    .allowedHeaders("*")
+                    .allowCredentials(true)
+                    .maxAge(MAX_AGE_SECS);
         }
 
         @Override
         public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.addPathPrefix(SignerConstants.API_URL_ROOT,
-                                HandlerTypePredicate.forAnnotation(RestController.class)
-                                                .and(HandlerTypePredicate.forBasePackage(
-                                                                "eu.europa.ec.eudi.signer.rssp.api")));
-                configurer.addPathPrefix(SignerConstants.CSC_URL_ROOT,
-                                HandlerTypePredicate.forAnnotation(RestController.class)
-                                                .and(HandlerTypePredicate.forBasePackage(
-                                                                "eu.europa.ec.eudi.signer.rssp.csc")));
+            configurer.addPathPrefix(SignerConstants.API_URL_ROOT,
+                    HandlerTypePredicate.forAnnotation(RestController.class)
+                            .and(HandlerTypePredicate.forBasePackage(
+                                    "eu.europa.ec.eudi.signer.rssp.api")));
+            configurer.addPathPrefix(SignerConstants.CSC_URL_ROOT,
+                    HandlerTypePredicate.forAnnotation(RestController.class)
+                            .and(HandlerTypePredicate.forBasePackage(
+                                    "eu.europa.ec.eudi.signer.rssp.csc")));
         }
 }

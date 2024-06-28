@@ -39,8 +39,11 @@ public class UserController {
 
     private static final Logger logger = LogManager.getLogger(UserController.class);
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(@Autowired UserService userService){
+        this.userService = userService;
+    }
 
     /**
      * Function that allows to get the hash and full name of the user logged in.

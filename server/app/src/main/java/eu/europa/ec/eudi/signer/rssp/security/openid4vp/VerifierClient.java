@@ -191,7 +191,7 @@ public class VerifierClient {
         int responseCode = 400;
         long startTime = System.currentTimeMillis();
         while (responseCode != 200 && (System.currentTimeMillis() - startTime) < 60000) {
-            HttpResponse response;
+            WebUtils.StatusAndMessage response;
             try {
                 response = WebUtils.httpGetRequests(url, headers);
             } catch (Exception e) {
@@ -203,16 +203,11 @@ public class VerifierClient {
                         SignerError.FailedConnectionToVerifier.getFormattedMessage());
             }
 
-            if (response.getStatusLine().getStatusCode() == 404)
+            if (response.getStatusCode() == 404)
                 throw new FailedConnectionVerifier();
-            else if (response.getStatusLine().getStatusCode() == 200) {
+            else if (response.getStatusCode() == 200) {
                 responseCode = 200;
-                HttpEntity entity = response.getEntity();
-                if (entity == null) {
-                    throw new Exception("Presentation Response from Verifier is empty.");
-                }
-                InputStream instream = entity.getContent();
-                message = WebUtils.convertStreamToString(instream);
+                message = response.getMessage();
             } else
                 TimeUnit.SECONDS.sleep(1);
         }

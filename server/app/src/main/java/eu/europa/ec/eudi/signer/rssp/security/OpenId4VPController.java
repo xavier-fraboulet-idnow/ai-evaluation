@@ -123,6 +123,7 @@ public class OpenId4VPController {
             String logMessage = SignerError.UnexpectedError.getCode()
                     + " (waitResponse in OpenId4VPController.class) " + e.getMessage();
             log.error(logMessage);
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
         }
     }

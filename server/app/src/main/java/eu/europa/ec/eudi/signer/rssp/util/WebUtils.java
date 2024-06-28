@@ -16,6 +16,7 @@
 
 package eu.europa.ec.eudi.signer.rssp.util;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -34,6 +35,36 @@ import java.util.Map;
 
 public class WebUtils {
 
+    public static class StatusAndMessage{
+        private int statusCode;
+        private String message;
+
+        public StatusAndMessage(int statusCode) {
+            this.statusCode = statusCode;
+        }
+
+        public StatusAndMessage(int statusCode, String message) {
+            this.statusCode = statusCode;
+            this.message = message;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public void setStatusCode(int statusCode) {
+            this.statusCode = statusCode;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+    }
+
     public static String convertStreamToString(InputStream is) throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
@@ -45,13 +76,19 @@ public class WebUtils {
         return sb.toString();
     }
 
-    public static HttpResponse httpGetRequests(String url, Map<String, String> headers) throws Exception {
+    public static StatusAndMessage httpGetRequests(String url, Map<String, String> headers) throws Exception {
         try(CloseableHttpClient httpClient = HttpClients.createDefault() ) {
-            HttpGet request = new HttpGet(url);
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                request.setHeader(entry.getKey(), entry.getValue());
+            HttpResponse response = httpGetRequestCommon(httpClient, url, headers);
+            if(response.getStatusLine().getStatusCode() == 200){
+                HttpEntity entity = response.getEntity();
+                if (entity == null) {
+                    throw new Exception("Presentation Response from Verifier is empty.");
+                }
+                InputStream inStream = entity.getContent();
+                String message = WebUtils.convertStreamToString(inStream);
+                return new StatusAndMessage(response.getStatusLine().getStatusCode(), message);
             }
-            return httpClient.execute(request);
+            else return new StatusAndMessage(response.getStatusLine().getStatusCode());
         }
     }
 
