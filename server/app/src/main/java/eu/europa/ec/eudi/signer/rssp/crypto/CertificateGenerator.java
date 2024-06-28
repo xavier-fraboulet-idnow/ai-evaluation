@@ -159,15 +159,6 @@ public class CertificateGenerator {
 		return calendar.getTime();
 	}
 
-	// debug method for writing cert to file
-	public void writeCertToFileBase64Encoded(Certificate certificate, String fileName) throws Exception {
-		FileOutputStream certificateOut = new FileOutputStream(fileName);
-		certificateOut.write("-----BEGIN CERTIFICATE-----\n".getBytes());
-		certificateOut.write(Base64.encode(certificate.getEncoded()));
-		certificateOut.write("\n-----END CERTIFICATE-----".getBytes());
-		certificateOut.close();
-	}
-
 	public byte[] generateCertificateRequestInfo(BigInteger modulus, BigInteger exponent, String givenName,
 			String surname, String commonName, String countryName, String organizationName, String subjectAltName)
 			throws Exception {

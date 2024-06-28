@@ -70,7 +70,8 @@ public class CredentialController {
 	public ResponseEntity<?> createCredential(@CurrentUser UserPrincipal userPrincipal,
 			@RequestParam("alias") String alias) {
 
-		logger.info("Trying to create the credential " + alias);
+		alias = alias.replaceAll("[\n\r]", "_");
+        logger.info("Trying to create the credential {}", alias);
 
 		String id = userPrincipal.getId();
 		Optional<User> user = userService.getUserById(id);

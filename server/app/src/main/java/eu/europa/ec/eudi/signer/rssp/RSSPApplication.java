@@ -21,11 +21,11 @@ import eu.europa.ec.eudi.signer.rssp.common.config.AuthProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.CSCProperties;
 import eu.europa.ec.eudi.signer.rssp.common.config.TrustedIssuersCertificatesProperties;
 
-import java.io.File;
-import java.util.Date;
 import eu.europa.ec.eudi.signer.rssp.common.config.VerifierProperties;
 import eu.europa.ec.eudi.signer.rssp.ejbca.EJBCAProperties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.ApplicationPidFileWriter;
@@ -37,59 +37,17 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
         EJBCAProperties.class, TrustedIssuersCertificatesProperties.class, AuthProperties.class })
 public class RSSPApplication {
 
-    // private final static threadConfig threadConfig = new threadConfig();
+    private static final Logger logger = LogManager.getLogger(RSSPApplication.class);
 
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(RSSPApplication.class);
         application.addListeners(new ApplicationPidFileWriter("./rssp.pid"));
 
-        String diretorio = threadConfig.diretorio;
-        VerificadorPDFs verificador = new VerificadorPDFs(diretorio);
-        verificador.start();
-
         try {
             application.run(args);
         } catch (Exception e) {
-            System.err.println("RSSP Application Failed to Start.");
+            logger.error("RSSP Application Failed to Start.");
             System.exit(1);
-        }
-    }
-
-    private static class VerificadorPDFs extends Thread {
-        private String diretorio;
-
-        public VerificadorPDFs(String diretorio) {
-            this.diretorio = diretorio;
-        }
-
-        @Override
-        public void run() {
-            while (true) {
-                try {
-
-                    int timeSleepThread = threadConfig.timeSleepThread;
-                    Thread.sleep(timeSleepThread * 1000);
-
-                    // Verificar os arquivos no diretório
-                    File[] arquivos = new File(diretorio).listFiles();
-                    if (arquivos != null) {
-                        for (File arquivo : arquivos) {
-                            if (arquivo.isFile() && arquivo.getName().toLowerCase().endsWith(".pdf")) {
-                                long diff = new Date().getTime() - arquivo.lastModified();
-                                // Verificar se o arquivo tem mais de 1 minuto de idade
-
-                                int fileAgeDelete = threadConfig.fileAgeDelete;
-                                if (diff > fileAgeDelete * 1000) {
-                                    System.out.println("Removed: " + arquivo.getName());
-                                    arquivo.delete();
-                                }
-                            }
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 }

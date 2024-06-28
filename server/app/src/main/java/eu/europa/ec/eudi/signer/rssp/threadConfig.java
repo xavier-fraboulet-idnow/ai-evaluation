@@ -19,5 +19,5 @@ package eu.europa.ec.eudi.signer.rssp;
 public class threadConfig {
     public static final int timeSleepThread = 300;
     public static final int fileAgeDelete = 300;
-    public static final String diretorio = "./pdf";
+    public static final String diretorio = "pdf";
 }
