@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,7 @@ public class VerifierClient {
      * @throws Exception
      */
     public RedirectLinkResponse initPresentationTransaction(String user, String type) throws ApiException, Exception {
-        if (!operationTypeIsValid(type)) {
+        if (operationTypeIsInvalid(type)) {
             String logMessage = SignerError.UnexpectedOperationType.getCode()
                     + "(initPresentationTransaction in VerifierClient.class): "
                     + SignerError.UnexpectedOperationType.getDescription();
@@ -157,7 +158,7 @@ public class VerifierClient {
      */
     public String getVPTokenFromVerifier(String user, String type)
             throws TimeoutException, FailedConnectionVerifier, Exception {
-        if (!operationTypeIsValid(type)) {
+        if (operationTypeIsInvalid(type)) {
             String logMessage = SignerError.UnexpectedOperationType.getCode()
                     + "(getVPTokenFromVerifier in VerifierClient.class): "
                     + SignerError.UnexpectedOperationType.getDescription();
@@ -220,8 +221,8 @@ public class VerifierClient {
         return message;
     }
 
-    private boolean operationTypeIsValid(String type) {
-        return Objects.equals(type, Authorization) || Objects.equals(type, Authentication);
+    private boolean operationTypeIsInvalid(String type) {
+        return !Objects.equals(type, Authorization) && !Objects.equals(type, Authentication);
     }
 
     private Map<String, String> getHeaders() {
@@ -263,7 +264,16 @@ public class VerifierClient {
             throw new Exception("Response to the presentation request is empty.");
         }
         String result = WebUtils.convertStreamToString(entity.getContent());
-        return new JSONObject(result);
+
+        JSONObject responseVerifier;
+        try{
+            System.out.println(result);
+            responseVerifier =  new JSONObject(result);
+        }
+        catch (JSONException e){
+            throw new Exception("The response from the Verifier doesn't contain a correctly formatted JSON string.");
+        }
+        return responseVerifier;
     }
 
     // returns the presentation_id
@@ -281,6 +291,13 @@ public class VerifierClient {
 
         String request_uri = responseFromVerifier.getString("request_uri");
         String client_id = responseFromVerifier.getString("client_id");
+        if(!client_id.equals(this.verifierProperties.getAddress())){
+            String logMessage = SignerError.UnexpectedError.getCode()
+                    + "(getPresentationIdAndCreateDeepLink in VerifierClient.class) Message received from the Verifier doesn't contained the client_id expected.";
+            log.error(logMessage);
+            throw new ApiException(SignerError.UnexpectedError,
+                    SignerError.UnexpectedError.getFormattedMessage());
+        }
         String presentation_id = responseFromVerifier.getString("presentation_id");
         String encoded_request_uri = URLEncoder.encode(request_uri, StandardCharsets.UTF_8);
 

@@ -30,6 +30,7 @@ import eu.europa.ec.eudi.signer.rssp.common.error.VerifiablePresentationVerifica
 import eu.europa.ec.eudi.signer.rssp.ejbca.EJBCAService;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import COSE.AlgorithmID;
@@ -73,7 +74,7 @@ public class VPValidator {
      * @return the position in the array documents of the vp_token where the
      *         requested Verifiable Presentation is located.
      */
-    private int validatePresentationSubmission() throws VerifiablePresentationVerificationException {
+    private int validatePresentationSubmission() throws VerifiablePresentationVerificationException, JSONException {
 
         JSONObject presentation_submission = this.verifiablePresentation.getJSONObject("presentation_submission");
 
@@ -160,7 +161,7 @@ public class VPValidator {
 
         X509Certificate issuerCertificate = this.ejbcaService.searchForIssuerCertificate(cert.getIssuerX500Principal());
         if (issuerCertificate == null) {
-            throw new Exception("Issuer of the VPToken is not trustworthy.");
+            throw new Exception("Issuer ("+cert.getIssuerX500Principal().getName()+") of the VPToken is not trustworthy.");
         }
 
         issuerCertificate.verify(issuerCertificate.getPublicKey());
@@ -255,95 +256,100 @@ public class VPValidator {
 
     public MDoc loadAndVerifyDocumentForVP(Map<Integer, String> logs)
             throws VerifiablePresentationVerificationException {
-        // Validate the Presentation Submission and get the Path from the
-        // descriptor_map.
-        int pos = validatePresentationSubmission();
-
-        DeviceResponse vpToken = loadVpTokenToDeviceResponse();
-
-        // Verify that the status in the vpToken is equal "success"
-        if (vpToken.getStatus().getValue().intValue() != 0)
-            throw new VerifiablePresentationVerificationException(SignerError.StatusVPTokenInvalid,
-                    "The vp_token's status is not equal to a successful status.",
-                    VerifiablePresentationVerificationException.Default);
-
-        MDoc document = vpToken.getDocuments().get(pos);
-
-        SimpleCOSECryptoProvider provider;
-        X509Certificate certificateFromIssuerAuth;
-
-        // Validate Certificate from the MSO header:
         try {
-            List<X509Certificate> certificateList = getAndValidateCertificateFromIssuerAuth(document);
-            certificateFromIssuerAuth = certificateList.get(0);
-            List<X509Certificate> certificateChain = certificateList.subList(1, certificateList.size());
-            provider = getSimpleCOSECryptoProvider(certificateFromIssuerAuth, certificateChain);
-        } catch (Exception e) {
-            throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
-                    "The Certificate in issuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
+            // Validate the Presentation Submission and get the Path from the
+            // descriptor_map.
+            int pos = validatePresentationSubmission();
+
+            DeviceResponse vpToken = loadVpTokenToDeviceResponse();
+
+            // Verify that the status in the vpToken is equal "success"
+            if (vpToken.getStatus().getValue().intValue() != 0)
+                throw new VerifiablePresentationVerificationException(SignerError.StatusVPTokenInvalid,
+                        "The vp_token's status is not equal to a successful status.",
+                        VerifiablePresentationVerificationException.Default);
+
+            MDoc document = vpToken.getDocuments().get(pos);
+
+            SimpleCOSECryptoProvider provider;
+            X509Certificate certificateFromIssuerAuth;
+
+            // Validate Certificate from the MSO header:
+            try {
+                List<X509Certificate> certificateList = getAndValidateCertificateFromIssuerAuth(document);
+                certificateFromIssuerAuth = certificateList.get(0);
+                List<X509Certificate> certificateChain = certificateList.subList(1, certificateList.size());
+                provider = getSimpleCOSECryptoProvider(certificateFromIssuerAuth, certificateChain);
+            } catch (Exception e) {
+                throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
+                        "The Certificate in issuerAuth is not valid. (" + e.getMessage() + ":" + e.getLocalizedMessage() + ")", VerifiablePresentationVerificationException.Default);
+            }
+
+            if (provider == null) {
+                throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
+                        "It was not possible to create a Crypto Provider to validate the vp_token.",
+                        VerifiablePresentationVerificationException.Default);
+            }
+            if (certificateFromIssuerAuth == null) {
+                throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
+                        "It was not possible to recover a Certificate from the IssuerAuth",
+                        VerifiablePresentationVerificationException.Default);
+            }
+
+            MSO mso = document.getMSO();
+
+            if (!document.verifyCertificate(provider, this.keyID))
+                throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
+                        "Certificate in issuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
+
+            // Verify the Digital Signature in the Issuer Auth
+            if (!document.verifySignature(provider, this.keyID))
+                throw new VerifiablePresentationVerificationException(SignerError.SignatureIssuerAuthInvalid,
+                        "The IssuerAuth Signature is not valid.", VerifiablePresentationVerificationException.Signature);
+
+            logs = addSignatureLog(document, logs);
+
+            // Verify the "DocType" in MSO == "DocType" in Documents
+            if (!document.verifyDocType())
+                throw new VerifiablePresentationVerificationException(SignerError.DocTypeMSODifferentFromDocuments,
+                        "The DocType in the MSO is not equal to the DocType in documents.",
+                        VerifiablePresentationVerificationException.Default);
+
+            assert mso != null;
+            if (!mso.getDocType().getValue().equals(document.getDocType().getValue()))
+                throw new VerifiablePresentationVerificationException(SignerError.DocTypeMSODifferentFromDocuments,
+                        "The DocType in the MSO is not equal to the DocType in documents.",
+                        VerifiablePresentationVerificationException.Default);
+
+            // Calcular o valor do digest de cada IssuerSignedItem do DeviceResponse e
+            // verificar que os digests calculados são iguais ao dos MSO
+            if (!document.verifyIssuerSignedItems())
+                throw new VerifiablePresentationVerificationException(SignerError.IntegrityVPTokenNotVerified,
+                        "The digest of the IssuerSignedItems are not equal to the digests in MSO.",
+                        VerifiablePresentationVerificationException.Integrity);
+
+            assert document.getIssuerSigned().getNameSpaces() != null;
+            List<EncodedCBORElement> nameSpaces = document.getIssuerSigned().getNameSpaces()
+                    .get(document.getDocType().getValue());
+            if (!mso.verifySignedItems(document.getDocType().getValue(), nameSpaces))
+                throw new VerifiablePresentationVerificationException(SignerError.IntegrityVPTokenNotVerified,
+                        "The digest of the IssuerSignedItem are not equal to the digests in MSO.",
+                        VerifiablePresentationVerificationException.Integrity);
+
+            logs = addIntegrityLog(mso, document, nameSpaces, logs);
+
+            // Verificar os elementos do ValidityInfo:
+            if (!validateValidityInfoElements(document, mso.getValidityInfo(),
+                    certificateFromIssuerAuth.getNotBefore().toInstant(),
+                    certificateFromIssuerAuth.getNotAfter().toInstant()))
+                throw new VerifiablePresentationVerificationException(SignerError.ValidityInfoInvalid,
+                        "Failed the ValidityInfo verification step.", VerifiablePresentationVerificationException.Default);
+
+            System.out.println("Verification Success.");
+            return document;
         }
-
-        if (provider == null) {
-            throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
-                    "It was not possible to create a Crypto Provider to validate the vp_token.",
-                    VerifiablePresentationVerificationException.Default);
+        catch (JSONException e){
+            throw new VerifiablePresentationVerificationException(SignerError.UnexpectedError, "The JSON string contains unexpected errors ("+e.getMessage()+").", VerifiablePresentationVerificationException.Default);
         }
-        if (certificateFromIssuerAuth == null) {
-            throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
-                    "It was not possible to recover a Certificate from the IssuerAuth",
-                    VerifiablePresentationVerificationException.Default);
-        }
-
-        MSO mso = document.getMSO();
-
-        if (!document.verifyCertificate(provider, this.keyID))
-            throw new VerifiablePresentationVerificationException(SignerError.CertificateIssuerAuthInvalid,
-                    "Certificate in issuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
-
-        // Verify the Digital Signature in the Issuer Auth
-        if (!document.verifySignature(provider, this.keyID))
-            throw new VerifiablePresentationVerificationException(SignerError.SignatureIssuerAuthInvalid,
-                    "The IssuerAuth Signature is not valid.", VerifiablePresentationVerificationException.Signature);
-
-        logs = addSignatureLog(document, logs);
-
-        // Verify the "DocType" in MSO == "DocType" in Documents
-        if (!document.verifyDocType())
-            throw new VerifiablePresentationVerificationException(SignerError.DocTypeMSODifferentFromDocuments,
-                    "The DocType in the MSO is not equal to the DocType in documents.",
-                    VerifiablePresentationVerificationException.Default);
-
-        assert mso != null;
-        if (!mso.getDocType().getValue().equals(document.getDocType().getValue()))
-            throw new VerifiablePresentationVerificationException(SignerError.DocTypeMSODifferentFromDocuments,
-                    "The DocType in the MSO is not equal to the DocType in documents.",
-                    VerifiablePresentationVerificationException.Default);
-
-        // Calcular o valor do digest de cada IssuerSignedItem do DeviceResponse e
-        // verificar que os digests calculados são iguais ao dos MSO
-        if (!document.verifyIssuerSignedItems())
-            throw new VerifiablePresentationVerificationException(SignerError.IntegrityVPTokenNotVerified,
-                    "The digest of the IssuerSignedItems are not equal to the digests in MSO.",
-                    VerifiablePresentationVerificationException.Integrity);
-
-        assert document.getIssuerSigned().getNameSpaces() != null;
-        List<EncodedCBORElement> nameSpaces = document.getIssuerSigned().getNameSpaces()
-                .get(document.getDocType().getValue());
-        if (!mso.verifySignedItems(document.getDocType().getValue(), nameSpaces))
-            throw new VerifiablePresentationVerificationException(SignerError.IntegrityVPTokenNotVerified,
-                    "The digest of the IssuerSignedItem are not equal to the digests in MSO.",
-                    VerifiablePresentationVerificationException.Integrity);
-
-        logs = addIntegrityLog(mso, document, nameSpaces, logs);
-
-        // Verificar os elementos do ValidityInfo:
-        if (!validateValidityInfoElements(document, mso.getValidityInfo(),
-                certificateFromIssuerAuth.getNotBefore().toInstant(),
-                certificateFromIssuerAuth.getNotAfter().toInstant()))
-            throw new VerifiablePresentationVerificationException(SignerError.ValidityInfoInvalid,
-                    "Failed the ValidityInfo verification step.", VerifiablePresentationVerificationException.Default);
-
-        System.out.println("Verification Success.");
-        return document;
     }
 }

@@ -94,8 +94,7 @@ public class OpenId4VPController {
             if (messageFromVerifier == null)
                 throw new Exception("Error when trying to obtain the vp_token from Verifier.");
 
-            AuthResponse JWTToken = this.service.loadUserFromVerifierResponseAndGetJWTToken(messageFromVerifier,
-                    VerifierClient.PresentationDefinitionId, VerifierClient.PresentationDefinitionInputDescriptorsId);
+            AuthResponse JWTToken = this.service.loadUserFromVerifierResponseAndGetJWTToken(messageFromVerifier);
             return ResponseEntity.ok(JWTToken);
         } catch (FailedConnectionVerifier e) {
             String logMessage = SignerError.FailedConnectionToVerifier.getCode()
