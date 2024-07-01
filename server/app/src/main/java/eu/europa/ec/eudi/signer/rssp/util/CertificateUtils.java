@@ -21,9 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CertificateUtils {
-
-    private static final SimpleDateFormat X509DateFormat = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
-
+    
     /**
      * Formats a date as a string according to x509 RFC 5280
      * Assumes the given date is UTC
@@ -35,6 +33,7 @@ public class CertificateUtils {
         if (date == null)
             return null;
 
+        SimpleDateFormat X509DateFormat = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
         return X509DateFormat.format(date);
     }
 }

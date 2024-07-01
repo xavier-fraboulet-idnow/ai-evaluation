@@ -37,11 +37,13 @@ import java.io.IOException;
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private UserAuthenticationTokenProvider tokenProvider;
+    private final UserAuthenticationTokenProvider tokenProvider;
+    private final OpenId4VPUserDetailsService customUserOID4VPDetailsService;
 
-    @Autowired
-    private OpenId4VPUserDetailsService customUserOID4VPDetailsService;
+    public TokenAuthenticationFilter(UserAuthenticationTokenProvider tokenProvider, OpenId4VPUserDetailsService customUserOID4VPDetailsService){
+        this.tokenProvider = tokenProvider;
+        this.customUserOID4VPDetailsService = customUserOID4VPDetailsService;
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
 

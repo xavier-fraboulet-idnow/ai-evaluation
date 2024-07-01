@@ -248,10 +248,9 @@ public class VerifierClient {
 
         if (response.getStatusLine().getStatusCode() != 200) {
             String error = WebUtils.convertStreamToString(response.getEntity().getContent());
-            log.error("HTTP Post Request not successful. Error : " + response.getStatusLine().getStatusCode()
-                    + " | Message: " + error);
-            throw new Exception(
-                    "HTTP Post Request not successful. Error : " + response.getStatusLine().getStatusCode());
+            int statusCode = response.getStatusLine().getStatusCode();
+            log.error("HTTP Post Request not successful. Error : " + statusCode);
+            throw new Exception("HTTP Post Request not successful. Error : " + response.getStatusLine().getStatusCode());
         }
 
         HttpEntity entity = response.getEntity();
@@ -262,7 +261,6 @@ public class VerifierClient {
 
         JSONObject responseVerifier;
         try{
-            System.out.println(result);
             responseVerifier =  new JSONObject(result);
         }
         catch (JSONException e){

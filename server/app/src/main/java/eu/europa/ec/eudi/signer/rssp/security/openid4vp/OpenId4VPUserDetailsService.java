@@ -35,8 +35,12 @@ import eu.europa.ec.eudi.signer.rssp.security.UserPrincipal;
 @Service
 public class OpenId4VPUserDetailsService implements UserDetailsService {
 
+    private final UserRepository userRepository;
+
     @Autowired
-    UserRepository userRepository;
+    public OpenId4VPUserDetailsService(UserRepository userRepository){
+        this.userRepository = userRepository;
+    }
 
     @Override
     @Transactional

@@ -19,6 +19,8 @@ package eu.europa.ec.eudi.signer.rssp.security;
 import static eu.europa.ec.eudi.signer.rssp.common.config.SignerConstants.CSC_URL_ROOT;
 import eu.europa.ec.eudi.signer.rssp.security.openid4vp.OpenId4VPAuthenticationProvider;
 
+import eu.europa.ec.eudi.signer.rssp.security.openid4vp.OpenId4VPUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,14 +39,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final OpenId4VPAuthenticationProvider customOID4VPAuthenticationProvider;
+    private final UserAuthenticationTokenProvider tokenProvider;
+    private final OpenId4VPUserDetailsService customUserOID4VPDetailsService;
 
-    public SpringSecurityConfig(OpenId4VPAuthenticationProvider customAuthenticationProvider) {
+    public SpringSecurityConfig(OpenId4VPAuthenticationProvider customAuthenticationProvider, @Autowired UserAuthenticationTokenProvider tokenProvider, @Autowired OpenId4VPUserDetailsService customUserOID4VPDetailsService) {
         this.customOID4VPAuthenticationProvider = customAuthenticationProvider;
+        this.tokenProvider = tokenProvider;
+        this.customUserOID4VPDetailsService = customUserOID4VPDetailsService;
     }
 
     @Bean
     public TokenAuthenticationFilter tokenAuthenticationFilter() {
-        return new TokenAuthenticationFilter();
+        return new TokenAuthenticationFilter(this.tokenProvider, this.customUserOID4VPDetailsService);
     }
 
     @Override

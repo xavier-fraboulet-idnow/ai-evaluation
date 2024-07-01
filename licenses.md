@@ -189,9 +189,9 @@ _2024-06-12 14:27:20 CET_
 
 ## MySQL Connector License
 
-**36** **Group:** `mysql` **Name:** `mysql-connector-java` **Version:** `8.0.33`
+**36** **Group:** `com.mysql` **Name:** `mysql-connector-j` **Version:** `8.0.33`
 
-> -   **POM Project URL**: [https://dev.mysql.com/](https://dev.mysql.com/)
+> -   **POM Project URL**: [https://dev.mysql.com/doc/connector-j/en/](https://dev.mysql.com/doc/connector-j/en/)
 > -   **POM License**: [https://github.com/mysql/mysql-connector-j/blob/release/8.x/LICENSE](https://github.com/mysql/mysql-connector-j/blob/release/8.x/LICENSE)
 
 ## MIT License

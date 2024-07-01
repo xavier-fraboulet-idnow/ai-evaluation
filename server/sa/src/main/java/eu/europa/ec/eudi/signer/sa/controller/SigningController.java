@@ -54,14 +54,13 @@ public class SigningController {
 
 	private final SigningService signingService;
 	private final FileStorageService fileStorageService;
-
-	@Autowired
 	public Environment env;
 
 	public SigningController(SigningService signingService,
-			FileStorageService fileStorageService) {
+			FileStorageService fileStorageService, @Autowired Environment env) {
 		this.signingService = signingService;
 		this.fileStorageService = fileStorageService;
+		this.env = env;
 	}
 
 	/**

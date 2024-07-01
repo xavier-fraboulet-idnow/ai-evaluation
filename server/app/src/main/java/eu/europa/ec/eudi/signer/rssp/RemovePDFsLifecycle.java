@@ -51,8 +51,9 @@ public class RemovePDFsLifecycle implements SmartLifecycle {
                             if (file.isFile() && file.getName().toLowerCase().endsWith(".pdf")) {
                                 long diff = new Date().getTime() - file.lastModified();
                                 if (diff > fileAgeDelete * 1000L) {
-                                    System.out.println("Removed: " + file.getName());
-                                    file.delete();
+                                    boolean deleted = file.delete();
+                                    System.out.println("Removed " + file.getName() + "? "+ deleted);
+
                                 }
                             }
                         }

@@ -31,7 +31,6 @@ public class EventRepository {
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        System.out.println(resultSet);
                         int id = resultSet.getInt("eventTypeID");
                         String eventName = resultSet.getString("eventName");
                         System.out.println("Loading event: eventTypeID: " + id + ", eventName: " + eventName);

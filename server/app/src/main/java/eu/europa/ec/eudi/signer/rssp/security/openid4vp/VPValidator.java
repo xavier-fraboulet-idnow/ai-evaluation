@@ -189,15 +189,12 @@ public class VPValidator {
         return new SimpleCOSECryptoProvider(Collections.singletonList(keyInfo));
     }
 
-    private static boolean validateValidityInfoElements(MDoc document, ValidityInfo validityInfo,
-            java.time.Instant notBefore, java.time.Instant notAfter)
-            throws VerifiablePresentationVerificationException {
+    private static void validateValidityInfoElements(MDoc document, ValidityInfo validityInfo, java.time.Instant notBefore, java.time.Instant notAfter) throws VerifiablePresentationVerificationException {
         Instant validity_info_signed = validityInfo.getSigned().getValue();
 
-        if (!document.verifyValidity()) { // This function verifies the Validity, based on validity info given in the
-                                          // MSO.
+        if (!document.verifyValidity()) { // This function verifies the Validity, based on validity info given in the MSO.
             throw new VerifiablePresentationVerificationException(SignerError.ValidityInfoInvalid,
-                    "the ValidFrom or the ValidUntil from the IssuerAuth is later then the current time.",
+                    "Failed the ValidityInfo verification step: the ValidFrom or the ValidUntil from the IssuerAuth is later than the current time.",
                     VerifiablePresentationVerificationException.Default);
         }
 
@@ -205,9 +202,7 @@ public class VPValidator {
         Instant certNotAfter = new Instant(notAfter);
         if (validity_info_signed.compareTo(certNotAfter) > 0 || validity_info_signed.compareTo(certNotBefore) < 0)
             throw new VerifiablePresentationVerificationException(SignerError.ValidityInfoInvalid,
-                    "the Signed in the IssuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
-
-        return true;
+                    "Failed the ValidityInfo verification step: the Signed in the IssuerAuth is not valid.", VerifiablePresentationVerificationException.Default);
     }
 
     private Map<Integer, String> addSignatureLog(MDoc document, Map<Integer, String> logs) {
@@ -235,9 +230,11 @@ public class VPValidator {
         } else if (digestAlg.equals("SHA-512")) {
             algs = DigestAlgorithm.SHA512;
         }
+
         if (algs == null) {
             algs = DigestAlgorithm.SHA256;
         }
+
         List<IssuerSignedItem> items = document.getIssuerSignedItems(document.getDocType().getValue());
 
         for (int i = 0; i < items.size(); i++) {
@@ -246,8 +243,7 @@ public class VPValidator {
             byte[] digest = valueDigests.get(digestId);
             byte[] digestObtained = MSO.Companion.digestItem(nameSpaces.get(i), algs);
             integrity_log.append("Received: ").append(Base64.getEncoder().encodeToString(digest)).append("; ");
-            integrity_log.append("Calculated: ").append(Base64.getEncoder().encodeToString(digestObtained))
-                    .append(" | ");
+            integrity_log.append("Calculated: ").append(Base64.getEncoder().encodeToString(digestObtained)).append(" | ");
         }
 
         logs.put(9, integrity_log.toString());
@@ -271,8 +267,8 @@ public class VPValidator {
 
             MDoc document = vpToken.getDocuments().get(pos);
 
-            SimpleCOSECryptoProvider provider;
-            X509Certificate certificateFromIssuerAuth;
+            SimpleCOSECryptoProvider provider = null;
+            X509Certificate certificateFromIssuerAuth = null;
 
             // Validate Certificate from the MSO header:
             try {
@@ -285,7 +281,7 @@ public class VPValidator {
                         "The Certificate in issuerAuth is not valid. (" + e.getMessage() + ":" + e.getLocalizedMessage() + ")", VerifiablePresentationVerificationException.Default);
             }
 
-            if (provider == null) {
+            /*if (provider == null) {
                 throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
                         "It was not possible to create a Crypto Provider to validate the vp_token.",
                         VerifiablePresentationVerificationException.Default);
@@ -294,7 +290,7 @@ public class VPValidator {
                 throw new VerifiablePresentationVerificationException(SignerError.FailedToValidateVPToken,
                         "It was not possible to recover a Certificate from the IssuerAuth",
                         VerifiablePresentationVerificationException.Default);
-            }
+            }*/
 
             MSO mso = document.getMSO();
 
@@ -338,12 +334,8 @@ public class VPValidator {
 
             logs = addIntegrityLog(mso, document, nameSpaces, logs);
 
-            // Verificar os elementos do ValidityInfo:
-            if (!validateValidityInfoElements(document, mso.getValidityInfo(),
-                    certificateFromIssuerAuth.getNotBefore().toInstant(),
-                    certificateFromIssuerAuth.getNotAfter().toInstant()))
-                throw new VerifiablePresentationVerificationException(SignerError.ValidityInfoInvalid,
-                        "Failed the ValidityInfo verification step.", VerifiablePresentationVerificationException.Default);
+            // Verify the ValidityInfo:
+            validateValidityInfoElements(document, mso.getValidityInfo(), certificateFromIssuerAuth.getNotBefore().toInstant(), certificateFromIssuerAuth.getNotAfter().toInstant());
 
             System.out.println("Verification Success.");
             return document;

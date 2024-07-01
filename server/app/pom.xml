@@ -26,8 +26,12 @@
     </parent>
 
     <artifactId>app</artifactId>
-    <packaging>jar</packaging>
     <name>app</name>
+    <packaging>jar</packaging>
+
+    <properties>
+        <dss.version>5.13</dss.version>
+    </properties>
 
     <repositories>
         <repository>
@@ -77,34 +81,32 @@
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>dss-pades</artifactId>
-            <version>5.13</version>
+            <version>${dss.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>dss-pades-pdfbox</artifactId>
-            <version>5.13</version>
+            <version>${dss.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.europa.ec.joinup.sd-dss</groupId>
             <artifactId>dss-utils-apache-commons</artifactId>
-            <version>5.13</version>
+            <version>${dss.version}</version>
         </dependency>
-		<dependency>
-			<groupId>eu.europa.ec.joinup.sd-dss</groupId>
-			<artifactId>validation-policy</artifactId>
-            <version>5.13</version>
-		</dependency>
+        <dependency>
+            <groupId>eu.europa.ec.joinup.sd-dss</groupId>
+            <artifactId>validation-policy</artifactId>
+            <version>${dss.version}</version>
+        </dependency>
 
         <!--Bouncy Castle-->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.70</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.70</version>
         </dependency>
 
         <!--CBOR Dependencies-->
@@ -121,17 +123,14 @@
 
         <!--MySQL-->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
-            <scope>runtime</scope>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
         </dependency>
 
         <!--JWToken: used by signer to generate and validate its own JWTs between client and server-->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
-            <version>0.5.1</version>
         </dependency>
         
         <!--Others-->
@@ -165,12 +164,17 @@
             <scope>test</scope>
         </dependency>
 
-
         <!--Spring Boot:-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
             <version>2.3.1.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>2.3.1.RELEASE</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -184,18 +188,24 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-rest</artifactId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
             <version>2.3.1.RELEASE</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <artifactId>spring-boot-starter-data-rest</artifactId>
             <version>2.3.1.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
             <version>2.3.1.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <version>5.3.4.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -206,7 +216,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
             <version>2.3.1.RELEASE</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -218,28 +228,14 @@
             <artifactId>spring-webflux</artifactId>
             <version>5.3.4</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>2.3.1.RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <version>5.3.4.RELEASE</version>
-        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-plugin</artifactId>
-                <version>1.9.23</version>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <id>copy-scripts</id>
@@ -278,6 +274,11 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
