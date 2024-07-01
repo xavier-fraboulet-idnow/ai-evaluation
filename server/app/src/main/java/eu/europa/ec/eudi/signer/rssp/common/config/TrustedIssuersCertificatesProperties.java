@@ -41,7 +41,7 @@ public class TrustedIssuersCertificatesProperties {
 
     private final Map<String, X509Certificate> trustIssuersCertificates;
 
-    public TrustedIssuersCertificatesProperties(String folder) {
+    public TrustedIssuersCertificatesProperties(String folder) throws Exception{
         this.folder = folder;
         this.trustIssuersCertificates = new HashMap<>();
 
@@ -58,12 +58,10 @@ public class TrustedIssuersCertificatesProperties {
                             X509Certificate CACert = (X509Certificate) factory.generateCertificate(is);
                             is.close();
                             this.trustIssuersCertificates.put(CACert.getSubjectX500Principal().toString(), CACert);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        } catch (Exception e1) {
+                            throw new RuntimeException(e1);
                         }
                     });
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

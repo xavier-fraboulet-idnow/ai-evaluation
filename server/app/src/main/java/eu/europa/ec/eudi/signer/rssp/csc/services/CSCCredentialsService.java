@@ -67,18 +67,10 @@ public class CSCCredentialsService {
 		none, single, chain
 	}
 
-	@Autowired
-	PaginationHelper paginationHelper;
-
-	@Autowired
-	private VerifierClient verifierClient;
-
-	@Autowired
-	private OpenId4VPService userOID4VPService;
-
-	@Autowired
-	private EJBCAService ejbcaService;
-
+	private final PaginationHelper paginationHelper;
+	private final VerifierClient verifierClient;
+	private final OpenId4VPService userOID4VPService;
+	private final EJBCAService ejbcaService;
 	private final AuthProperties authProperties;
 	private final CredentialService credentialService;
 	private final UserService userService;
@@ -87,8 +79,13 @@ public class CSCCredentialsService {
 
 	private static final Logger logger = LogManager.getLogger(CSCCredentialsService.class);
 
-	public CSCCredentialsService(CredentialService credentialService, UserService userService,
-			CryptoService cryptoService, CSCSADProvider sadProvider, @Autowired AuthProperties authProperties) {
+	public CSCCredentialsService(
+			@Autowired PaginationHelper paginationHelper, @Autowired VerifierClient verifierClient, @Autowired OpenId4VPService userOID4VPService, @Autowired EJBCAService ejbcaService, @Autowired AuthProperties authProperties,
+			CredentialService credentialService, UserService userService, CryptoService cryptoService, CSCSADProvider sadProvider) {
+		this.paginationHelper = paginationHelper;
+		this.verifierClient = verifierClient;
+		this.userOID4VPService = userOID4VPService;
+		this.ejbcaService = ejbcaService;
 		this.credentialService = credentialService;
 		this.userService = userService;
 		this.cryptoService = cryptoService;
@@ -332,7 +329,7 @@ public class CSCCredentialsService {
 			throw e;
 		} catch (Exception e) {
 			String logMessage = SignerError.UnexpectedError.getCode()
-					+ " (authorizeCredentialWithOID4VP in CSCCredentialsService.class) " + e.getMessage();
+					+ " (authorizeCredentialWithOID4VP in CSCCredentialsService.class): It was not possible to load the data from the VP Token in the authorization process: " + e.getMessage();
 			logger.error(logMessage);
 			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6, "");
@@ -340,9 +337,9 @@ public class CSCCredentialsService {
 					"The access to the credentials was not authorized.");
 		}
 
-		if (loaded.equals(null)) {
+		if (loaded == null) {
 			String logMessage = SignerError.UnexpectedError.getCode()
-					+ " (authorizeCredentialWithOID4VP in CSCCredentialsService.class) It was not possible to load the data from the VP Token in the authorization proccess.";
+					+ " (authorizeCredentialWithOID4VP in CSCCredentialsService.class) It was not possible to load the data from the VP Token in the authorization process.";
 			logger.error(logMessage);
 			LoggerUtil.logsUser(this.authProperties.getDatasourceUsername(),
 					this.authProperties.getDatasourcePassword(), 0, user.getId(), 6, "");

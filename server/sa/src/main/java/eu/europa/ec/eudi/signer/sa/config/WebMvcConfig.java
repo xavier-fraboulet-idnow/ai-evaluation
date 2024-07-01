@@ -28,15 +28,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(WebMvcConfig.class);
-    private final long MAX_AGE_SECS = 3600;
+    public Environment env;
 
     @Autowired
-    public Environment env;
+    public WebMvcConfig(Environment env){
+        this.env = env;
+    }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         String clientUrl = env.getProperty("ASSINA_CLIENT_BASE_URL");
         log.warn("CORS: Allowing client origin: {}", clientUrl);
+        long MAX_AGE_SECS = 3600L;
         registry.addMapping("/**")
                 .allowedOrigins(clientUrl, "http://localhost:3000", "https://trustprovider.signer.eudiw.dev")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")

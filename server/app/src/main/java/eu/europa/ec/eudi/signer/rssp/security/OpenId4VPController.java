@@ -48,12 +48,13 @@ import eu.europa.ec.eudi.signer.rssp.security.openid4vp.VerifierClient;
 public class OpenId4VPController {
 
     private static final Logger log = LoggerFactory.getLogger(OpenId4VPController.class);
+    private final VerifierClient verifierClient;
+    private final OpenId4VPService service;
 
-    @Autowired
-    private VerifierClient verifierClient;
-
-    @Autowired
-    private OpenId4VPService service;
+    public OpenId4VPController(@Autowired VerifierClient verifierClient, @Autowired OpenId4VPService service){
+        this.verifierClient = verifierClient;
+        this.service = service;
+    }
 
     @GetMapping("link")
     public ResponseEntity<?> initPresentationTransaction(HttpServletRequest request, HttpServletResponse httpResponse) {
@@ -82,6 +83,8 @@ public class OpenId4VPController {
         byte[] result = sha.digest(randomNum.getBytes());
         String sessionCookie = Base64.getUrlEncoder().encodeToString(result);
         Cookie cookie = new Cookie("JSESSIONID", sessionCookie);
+        cookie.setSecure(true);
+        cookie.setHttpOnly(true);
         cookie.setPath("/");
         return cookie;
     }
@@ -123,7 +126,6 @@ public class OpenId4VPController {
             String logMessage = SignerError.UnexpectedError.getCode()
                     + " (waitResponse in OpenId4VPController.class) " + e.getMessage();
             log.error(logMessage);
-            e.printStackTrace();
             return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
         }
     }

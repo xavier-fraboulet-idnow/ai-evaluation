@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -30,6 +31,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import eu.europa.ec.eudi.signer.common.ApiError;
 import eu.europa.ec.eudi.signer.common.ApiErrorResponse;
 import eu.europa.ec.eudi.signer.csc.error.CSCInvalidRequest;
+
+import java.lang.reflect.Field;
 
 /**
  * Captures exceptions going out of the REST layer and converts ApiErrors into
@@ -76,14 +79,20 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 			WebRequest request) {
 		ApiError apiError;
 		if (ex.hasFieldErrors()) {
-			final String error = ex.getFieldError().getDefaultMessage();
-			try {
-				apiError = CSCInvalidRequest.valueOf(error);
-			} catch (IllegalArgumentException e) {
+			FieldError fieldError = ex.getFieldError();
+			if(fieldError == null){
+				apiError = SignerError.UnexpectedValidationError;
+			}
+			else{
+				String error = fieldError.getDefaultMessage();
 				try {
-					apiError = SignerError.valueOf(error);
-				} catch (IllegalArgumentException e2) {
-					apiError = SignerError.UnexpectedValidationError;
+					apiError = CSCInvalidRequest.valueOf(error);
+				} catch (IllegalArgumentException e) {
+					try {
+						apiError = SignerError.valueOf(error);
+					} catch (IllegalArgumentException e2) {
+						apiError = SignerError.UnexpectedValidationError;
+					}
 				}
 			}
 		} else {
