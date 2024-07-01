@@ -83,6 +83,8 @@ public class OpenId4VPController {
         byte[] result = sha.digest(randomNum.getBytes());
         String sessionCookie = Base64.getUrlEncoder().encodeToString(result);
         Cookie cookie = new Cookie("JSESSIONID", sessionCookie);
+        cookie.setSecure(true);
+        cookie.setHttpOnly(true);
         cookie.setPath("/");
         return cookie;
     }
@@ -124,7 +126,6 @@ public class OpenId4VPController {
             String logMessage = SignerError.UnexpectedError.getCode()
                     + " (waitResponse in OpenId4VPController.class) " + e.getMessage();
             log.error(logMessage);
-            e.printStackTrace();
             return ResponseEntity.badRequest().body(SignerError.UnexpectedError.getFormattedMessage());
         }
     }
