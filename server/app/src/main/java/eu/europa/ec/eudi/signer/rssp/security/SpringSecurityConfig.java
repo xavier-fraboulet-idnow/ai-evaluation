@@ -33,6 +33,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.regex.Pattern;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
@@ -62,7 +64,15 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean(BeanIds.AUTHENTICATION_MANAGER)
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
+
         return super.authenticationManagerBean();
+    }
+
+    public boolean testFrenchMsisdn(String msisdn) {
+        // Regular expression to match French mobile numbers
+        String frenchMsisdnPattern = "^(\\+33|0)[67]\\d{8}$";
+        Pattern pattern = Pattern.compile(frenchMsisdnPattern);
+        return pattern.matcher(msisdn).matches();
     }
 
     @Override

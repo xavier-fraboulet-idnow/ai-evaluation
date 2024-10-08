@@ -16,13 +16,7 @@
 
 package eu.europa.ec.eudi.signer.rssp.security.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,14 +24,14 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-public class JwtProvider {
+public class JwtProviderError {
 
     private static final String TYPE_CLAIM_NAME = "type";
-    private static final Logger log = LoggerFactory.getLogger(JwtProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(JwtProviderError.class);
 
     private final JwtProviderConfig jwtConfig;
 
-    public JwtProvider(JwtProviderConfig jwtConfig) {
+    public JwtProviderError(JwtProviderConfig jwtConfig) {
         this.jwtConfig = jwtConfig;
     }
 
@@ -97,7 +91,5 @@ public class JwtProvider {
             return JwtToken.invalidToken("JWT claims string is empty.");
         }
     }
-
-
 
 }
